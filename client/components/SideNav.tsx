@@ -56,7 +56,7 @@ export const SideNav = () => {
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-4 left-4 z-50 sm:hidden p-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+        className="fixed bottom-24 right-4 z-50 sm:hidden p-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity shadow-lg"
         aria-label="Toggle menu"
       >
         {isOpen ? <X size={24} /> : <Menu size={24} />}

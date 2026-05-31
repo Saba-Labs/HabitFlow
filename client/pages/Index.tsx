@@ -64,12 +64,12 @@ export default function Dashboard() {
     <div className="min-h-screen pb-24 bg-background">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm border-b border-border">
-        <div className="max-w-2xl mx-auto px-4 py-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+        <div className="mx-auto px-4 py-6 sm:px-6 flex items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent truncate">
               HabitFlow
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               {new Date().toLocaleDateString('en-US', {
                 weekday: 'long',
                 month: 'long',
@@ -77,7 +77,9 @@ export default function Dashboard() {
               })}
             </p>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <ThemeToggle />
+          </div>
         </div>
       </div>
 
