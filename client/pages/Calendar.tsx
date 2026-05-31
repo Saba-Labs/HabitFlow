@@ -2,13 +2,10 @@ import { useState } from 'react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { recordStorage, habitStorage } from '@/lib/storage';
 import { ChevronLeft, ChevronRight, Menu } from 'lucide-react';
+import { useMobileMenu } from '@/lib/mobile-menu-context';
 
-interface CalendarProps {
-  mobileMenuOpen: boolean;
-  setMobileMenuOpen: (value: boolean) => void;
-}
-
-export default function Calendar({ mobileMenuOpen, setMobileMenuOpen }: CalendarProps) {
+export default function Calendar() {
+  const { mobileMenuOpen, setMobileMenuOpen } = useMobileMenu();
   const [currentDate, setCurrentDate] = useState(new Date());
   const records = recordStorage.getRecords();
 

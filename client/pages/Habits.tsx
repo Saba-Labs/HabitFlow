@@ -4,13 +4,10 @@ import { apiHabitStorage } from '@/lib/api-storage';
 import { habitStorage, initializeDefaultHabits } from '@/lib/storage';
 import { AddHabitModal } from '@/components/AddHabitModal';
 import { Plus, Edit2, Trash2, Menu } from 'lucide-react';
+import { useMobileMenu } from '@/lib/mobile-menu-context';
 
-interface HabitsPageProps {
-  mobileMenuOpen: boolean;
-  setMobileMenuOpen: (value: boolean) => void;
-}
-
-export default function HabitsPage({ mobileMenuOpen, setMobileMenuOpen }: HabitsPageProps) {
+export default function HabitsPage() {
+  const { mobileMenuOpen, setMobileMenuOpen } = useMobileMenu();
   const [habits, setHabits] = useState<Habit[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
@@ -23,17 +20,12 @@ export default function HabitsPage({ mobileMenuOpen, setMobileMenuOpen }: Habits
   const loadHabits = async () => {
     setLoading(true);
     try {
-      const allHabits = await apiHabitStorage.getHabits();
+      let allHabits = await apiHabitStorage.getHabits();
       if (allHabits.length === 0) {
         initializeDefaultHabits();
-        const defaultHabits = habitStorage.getHabits();
-        for (const habit of defaultHabits) {
-          await apiHabitStorage.addHabit(habit);
-        }
-        setHabits(defaultHabits);
-      } else {
-        setHabits(allHabits);
+        allHabits = habitStorage.getHabits();
       }
+      setHabits(allHabits);
     } catch (err) {
       console.error('Error loading habits:', err);
       const localHabits = habitStorage.getHabits();

@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { query } from '../db';
+import { query, isDbReady } from '../db';
 import { memoryStore } from '../memory-store';
 
 export const getHabits: RequestHandler = async (req, res) => {
@@ -9,6 +9,11 @@ export const getHabits: RequestHandler = async (req, res) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
+    if (!isDbReady()) {
+      const habits = memoryStore.getHabits(userId);
+      return res.json(habits);
+    }
+
     const result = await query(
       'SELECT * FROM habits WHERE user_id = $1 AND archived = FALSE ORDER BY "order"',
       [userId]
@@ -16,7 +21,8 @@ export const getHabits: RequestHandler = async (req, res) => {
     res.json(result.rows || []);
   } catch (err) {
     console.error('Error fetching habits:', err);
-    res.status(500).json({ error: 'Failed to fetch habits' });
+    const habits = memoryStore.getHabits(req.user?.userId || '');
+    res.json(habits);
   }
 };
 
@@ -31,6 +37,22 @@ export const addHabit: RequestHandler = async (req, res) => {
 
     if (!id) {
       id = `habit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+
+    if (!isDbReady()) {
+      const habit = memoryStore.insertHabit({
+        id,
+        user_id: userId,
+        name,
+        icon,
+        color,
+        notes: notes || undefined,
+        order: order || 0,
+        archived: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+      return res.status(201).json(habit);
     }
 
     const result = await query(
@@ -55,6 +77,21 @@ export const updateHabit: RequestHandler = async (req, res) => {
 
     const { habitId } = req.params;
     const { name, icon, color, notes } = req.body;
+
+    if (!isDbReady()) {
+      const habit = memoryStore.updateHabit(habitId, {
+        name,
+        icon,
+        color,
+        notes: notes || undefined,
+        updated_at: new Date().toISOString(),
+      });
+      if (!habit) {
+        return res.status(404).json({ error: 'Habit not found' });
+      }
+      return res.json(habit);
+    }
+
     const result = await query(
       `UPDATE habits
        SET name = $1, icon = $2, color = $3, notes = $4, updated_at = CURRENT_TIMESTAMP
@@ -80,6 +117,12 @@ export const deleteHabit: RequestHandler = async (req, res) => {
     }
 
     const { habitId } = req.params;
+
+    if (!isDbReady()) {
+      memoryStore.deleteHabit(habitId);
+      return res.json({ success: true });
+    }
+
     const result = await query(
       'DELETE FROM habits WHERE id = $1 AND user_id = $2 RETURNING *',
       [habitId, userId]

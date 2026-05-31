@@ -9,6 +9,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { SideNav } from "@/components/SideNav";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
+import { MobileMenuProvider, useMobileMenu } from "@/lib/mobile-menu-context";
 import Login from "./pages/Login";
 import Index from "./pages/Index";
 import Habits from "./pages/Habits";
@@ -35,16 +36,9 @@ const InitTheme = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const ProtectedLayout = ({
-  component,
-  mobileMenuOpen,
-  setMobileMenuOpen
-}: {
-  component: React.ReactNode;
-  mobileMenuOpen: boolean;
-  setMobileMenuOpen: (value: boolean) => void;
-}) => {
+const ProtectedLayout = ({ component }: { component: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
+  const { mobileMenuOpen, setMobileMenuOpen } = useMobileMenu();
 
   if (loading) {
     return (
@@ -69,24 +63,22 @@ const ProtectedLayout = ({
   );
 };
 
-const AppContent = ({ mobileMenuOpen, setMobileMenuOpen }: { mobileMenuOpen: boolean; setMobileMenuOpen: (value: boolean) => void }) => {
+const AppContent = () => {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path="/" element={<ProtectedLayout component={<Index mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} />
-      <Route path="/habits" element={<ProtectedLayout component={<Habits mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} />
-      <Route path="/calendar" element={<ProtectedLayout component={<Calendar mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} />
-      <Route path="/reports" element={<ProtectedLayout component={<Reports mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} />
-      <Route path="/achievements" element={<ProtectedLayout component={<Achievements mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} />
-      <Route path="/settings" element={<ProtectedLayout component={<Settings mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} />
+      <Route path="/" element={<ProtectedLayout component={<Index />} />} />
+      <Route path="/habits" element={<ProtectedLayout component={<Habits />} />} />
+      <Route path="/calendar" element={<ProtectedLayout component={<Calendar />} />} />
+      <Route path="/reports" element={<ProtectedLayout component={<Reports />} />} />
+      <Route path="/achievements" element={<ProtectedLayout component={<Achievements />} />} />
+      <Route path="/settings" element={<ProtectedLayout component={<Settings />} />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };
 
 const App = () => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -94,9 +86,11 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <InitTheme>
-              <AppContent mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />
-            </InitTheme>
+            <MobileMenuProvider>
+              <InitTheme>
+                <AppContent />
+              </InitTheme>
+            </MobileMenuProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

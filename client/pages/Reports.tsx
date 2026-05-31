@@ -2,13 +2,10 @@ import { useMemo } from 'react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { recordStorage, habitStorage } from '@/lib/storage';
 import { TrendingUp, TrendingDown, Minus, Menu } from 'lucide-react';
+import { useMobileMenu } from '@/lib/mobile-menu-context';
 
-interface ReportsProps {
-  mobileMenuOpen: boolean;
-  setMobileMenuOpen: (value: boolean) => void;
-}
-
-export default function Reports({ mobileMenuOpen, setMobileMenuOpen }: ReportsProps) {
+export default function Reports() {
+  const { mobileMenuOpen, setMobileMenuOpen } = useMobileMenu();
   const records = recordStorage.getRecords();
   const habits = habitStorage.getHabits().filter(h => !h.archived);
 

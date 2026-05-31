@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { query } from '../db';
+import { query, isDbReady } from '../db';
 import { memoryStore } from '../memory-store';
 
 export const getTodayRecord: RequestHandler = async (req, res) => {
@@ -10,13 +10,62 @@ export const getTodayRecord: RequestHandler = async (req, res) => {
     }
 
     const today = new Date().toISOString().split('T')[0];
+    console.log(`getTodayRecord: userId=${userId}, today=${today}, dbReady=${isDbReady()}`);
+
+    if (!isDbReady()) {
+      try {
+        let record = memoryStore.getRecord(userId, today);
+        if (!record) {
+          const recordId = `record_${today}_${userId}`;
+          record = memoryStore.insertRecord({
+            id: recordId,
+            user_id: userId,
+            date: today,
+            completion_percentage: 0,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+          const habits = memoryStore.getHabits(userId);
+          console.log(`Created record ${recordId} with ${habits.length} habits`);
+          for (const habit of habits) {
+            memoryStore.insertCompletion({
+              id: `completion_${Date.now()}_${habit.id}`,
+              record_id: recordId,
+              habit_id: habit.id,
+              completed: false,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            });
+          }
+        }
+        const completions = memoryStore.getCompletions(record.id);
+        console.log(`Returning record with ${completions.length} completions`);
+        return res.json({
+          id: record.id,
+          date: record.date,
+          habits: completions.map(c => ({
+            habitId: c.habit_id,
+            completed: c.completed,
+            completedAt: c.completed_at,
+          })),
+          completionPercentage: record.completion_percentage,
+        });
+      } catch (memErr) {
+        console.error('Error fetching from memory store:', memErr);
+        throw memErr;
+      }
+    }
+
     let result = await query(
       `SELECT dr.*,
-              json_agg(json_build_object('habitId', hc.habit_id, 'completed', hc.completed, 'completedAt', hc.completed_at) ORDER BY hc.created_at) as habits
+              COALESCE(
+                (SELECT json_agg(json_build_object('habitId', habit_id, 'completed', completed, 'completedAt', completed_at) ORDER BY created_at)
+                 FROM habit_completions
+                 WHERE record_id = dr.id),
+                '[]'::json
+              ) as habits
        FROM daily_records dr
-       LEFT JOIN habit_completions hc ON dr.id = hc.record_id
-       WHERE dr.user_id = $1 AND dr.date = $2
-       GROUP BY dr.id`,
+       WHERE dr.user_id = $1 AND dr.date = $2`,
       [userId, today]
     );
 
@@ -43,25 +92,34 @@ export const getTodayRecord: RequestHandler = async (req, res) => {
 
       result = await query(
         `SELECT dr.*,
-                json_agg(json_build_object('habitId', hc.habit_id, 'completed', hc.completed, 'completedAt', hc.completed_at)) as habits
+                COALESCE(
+                  (SELECT json_agg(json_build_object('habitId', habit_id, 'completed', completed, 'completedAt', completed_at) ORDER BY created_at)
+                   FROM habit_completions
+                   WHERE record_id = dr.id),
+                  '[]'::json
+                ) as habits
          FROM daily_records dr
-         LEFT JOIN habit_completions hc ON dr.id = hc.record_id
-         WHERE dr.id = $1
-         GROUP BY dr.id`,
+         WHERE dr.id = $1`,
         [recordId]
       );
     }
 
+    if (!result.rows[0]) {
+      return res.status(404).json({ error: 'Record not found' });
+    }
+
     const record = result.rows[0];
+    const habitsArray = Array.isArray(record.habits) ? record.habits : [];
     res.json({
       id: record.id,
       date: record.date,
-      habits: record.habits || [],
+      habits: habitsArray.filter(h => h !== null),
       completionPercentage: record.completion_percentage,
     });
   } catch (err) {
-    console.error('Error getting today record:', err);
-    res.status(500).json({ error: 'Failed to fetch record' });
+    console.error('Error getting today record:', err instanceof Error ? err.message : err);
+    console.error('Full error:', err);
+    res.status(500).json({ error: 'Failed to fetch record', details: err instanceof Error ? err.message : String(err) });
   }
 };
 
@@ -74,6 +132,22 @@ export const toggleHabit: RequestHandler = async (req, res) => {
   const { recordId, habitId } = req.params;
 
   try {
+    if (!isDbReady()) {
+      const completion = memoryStore.getCompletion(recordId, habitId);
+      if (!completion) {
+        return res.status(404).json({ error: 'Habit completion not found' });
+      }
+      const newStatus = !completion.completed;
+      memoryStore.updateCompletion(recordId, habitId, {
+        completed: newStatus,
+        completed_at: newStatus ? new Date().toISOString() : undefined,
+      });
+      const stats = memoryStore.getCompletionStats(recordId);
+      const percentage = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+      memoryStore.updateRecord(recordId, { completion_percentage: percentage });
+      return res.json({ success: true, completed: newStatus });
+    }
+
     const habitResult = await query(
       'SELECT completed FROM habit_completions WHERE record_id = $1 AND habit_id = $2',
       [recordId, habitId]

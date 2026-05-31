@@ -9,6 +9,8 @@ if (process.env.DATABASE_URL) {
   });
 }
 
+export const isDbReady = () => isDbAvailable && pool !== null;
+
 export const query = async (text: string, params?: any[]) => {
   if (!isDbAvailable || !pool) {
     throw new Error('Database not available');

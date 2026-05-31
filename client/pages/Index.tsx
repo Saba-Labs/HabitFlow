@@ -5,16 +5,12 @@ import { habitStorage, initializeDefaultHabits } from '@/lib/storage';
 import { getDailyQuote } from '@/lib/quotes';
 import { CircleProgress } from '@/components/CircleProgress';
 import { HabitCard } from '@/components/HabitCard';
-import { SideNav } from '@/components/SideNav';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Flame, Zap, Menu } from 'lucide-react';
+import { useMobileMenu } from '@/lib/mobile-menu-context';
 
-interface DashboardProps {
-  mobileMenuOpen: boolean;
-  setMobileMenuOpen: (value: boolean) => void;
-}
-
-export default function Dashboard({ mobileMenuOpen, setMobileMenuOpen }: DashboardProps) {
+export default function Dashboard() {
+  const { mobileMenuOpen, setMobileMenuOpen } = useMobileMenu();
   const [habits, setHabits] = useState<Habit[]>([]);
   const [record, setRecord] = useState<DailyRecord | null>(null);
   const [quote, setQuote] = useState<string>('');
@@ -26,20 +22,22 @@ export default function Dashboard({ mobileMenuOpen, setMobileMenuOpen }: Dashboa
 
   const loadData = async () => {
     try {
-      const allHabits = await apiHabitStorage.getHabits();
+      let allHabits = await apiHabitStorage.getHabits();
+
       if (allHabits.length === 0) {
         initializeDefaultHabits();
-        const defaultHabits = habitStorage.getHabits();
-        for (const habit of defaultHabits) {
-          await apiHabitStorage.addHabit(habit);
-        }
-        setHabits(defaultHabits);
-      } else {
-        setHabits(allHabits);
+        allHabits = habitStorage.getHabits();
       }
 
-      const todayRecord = await apiRecordStorage.getTodayRecord(allHabits);
-      setRecord(todayRecord);
+      setHabits(allHabits);
+
+      try {
+        const todayRecord = await apiRecordStorage.getTodayRecord(allHabits);
+        setRecord(todayRecord);
+      } catch (err) {
+        console.warn('Failed to fetch today record from API:', err);
+      }
+
       setQuote(getDailyQuote());
       setStreaks({ current: 0, longest: 0, perfect: 0 });
     } catch (err) {
