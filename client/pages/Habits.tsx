@@ -20,17 +20,12 @@ export default function HabitsPage() {
   const loadHabits = async () => {
     setLoading(true);
     try {
-      const allHabits = await apiHabitStorage.getHabits();
+      let allHabits = await apiHabitStorage.getHabits();
       if (allHabits.length === 0) {
         initializeDefaultHabits();
-        const defaultHabits = habitStorage.getHabits();
-        for (const habit of defaultHabits) {
-          await apiHabitStorage.addHabit(habit);
-        }
-        setHabits(defaultHabits);
-      } else {
-        setHabits(allHabits);
+        allHabits = habitStorage.getHabits();
       }
+      setHabits(allHabits);
     } catch (err) {
       console.error('Error loading habits:', err);
       const localHabits = habitStorage.getHabits();
