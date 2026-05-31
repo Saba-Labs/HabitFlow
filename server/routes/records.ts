@@ -10,47 +10,55 @@ export const getTodayRecord: RequestHandler = async (req, res) => {
     }
 
     const today = new Date().toISOString().split('T')[0];
+    console.log(`getTodayRecord: userId=${userId}, today=${today}, dbReady=${isDbReady()}`);
 
     if (!isDbReady()) {
-      let record = memoryStore.getRecord(userId, today);
-      if (!record) {
-        const recordId = `record_${today}`;
-        record = memoryStore.insertRecord({
-          id: recordId,
-          user_id: userId,
-          date: today,
-          completion_percentage: 0,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        });
-        const habits = memoryStore.getHabits(userId);
-        for (const habit of habits) {
-          memoryStore.insertCompletion({
-            id: `completion_${Date.now()}_${habit.id}`,
-            record_id: recordId,
-            habit_id: habit.id,
-            completed: false,
+      try {
+        let record = memoryStore.getRecord(userId, today);
+        if (!record) {
+          const recordId = `record_${today}_${userId}`;
+          record = memoryStore.insertRecord({
+            id: recordId,
+            user_id: userId,
+            date: today,
+            completion_percentage: 0,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           });
+          const habits = memoryStore.getHabits(userId);
+          console.log(`Created record ${recordId} with ${habits.length} habits`);
+          for (const habit of habits) {
+            memoryStore.insertCompletion({
+              id: `completion_${Date.now()}_${habit.id}`,
+              record_id: recordId,
+              habit_id: habit.id,
+              completed: false,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            });
+          }
         }
+        const completions = memoryStore.getCompletions(record.id);
+        console.log(`Returning record with ${completions.length} completions`);
+        return res.json({
+          id: record.id,
+          date: record.date,
+          habits: completions.map(c => ({
+            habitId: c.habit_id,
+            completed: c.completed,
+            completedAt: c.completed_at,
+          })),
+          completionPercentage: record.completion_percentage,
+        });
+      } catch (memErr) {
+        console.error('Error fetching from memory store:', memErr);
+        throw memErr;
       }
-      const completions = memoryStore.getCompletions(record.id);
-      return res.json({
-        id: record.id,
-        date: record.date,
-        habits: completions.map(c => ({
-          habitId: c.habit_id,
-          completed: c.completed,
-          completedAt: c.completed_at,
-        })),
-        completionPercentage: record.completion_percentage,
-      });
     }
 
     let result = await query(
       `SELECT dr.*,
-              json_agg(json_build_object('habitId', hc.habit_id, 'completed', hc.completed, 'completedAt', hc.completed_at) ORDER BY hc.created_at) as habits
+              COALESCE(json_agg(json_build_object('habitId', hc.habit_id, 'completed', hc.completed, 'completedAt', hc.completed_at) ORDER BY hc.created_at) FILTER (WHERE hc.id IS NOT NULL), '[]'::json) as habits
        FROM daily_records dr
        LEFT JOIN habit_completions hc ON dr.id = hc.record_id
        WHERE dr.user_id = $1 AND dr.date = $2
@@ -81,7 +89,7 @@ export const getTodayRecord: RequestHandler = async (req, res) => {
 
       result = await query(
         `SELECT dr.*,
-                json_agg(json_build_object('habitId', hc.habit_id, 'completed', hc.completed, 'completedAt', hc.completed_at)) as habits
+                COALESCE(json_agg(json_build_object('habitId', hc.habit_id, 'completed', hc.completed, 'completedAt', hc.completed_at)) FILTER (WHERE hc.id IS NOT NULL), '[]'::json) as habits
          FROM daily_records dr
          LEFT JOIN habit_completions hc ON dr.id = hc.record_id
          WHERE dr.id = $1
@@ -90,11 +98,16 @@ export const getTodayRecord: RequestHandler = async (req, res) => {
       );
     }
 
+    if (!result.rows[0]) {
+      return res.status(404).json({ error: 'Record not found' });
+    }
+
     const record = result.rows[0];
+    const habitsArray = Array.isArray(record.habits) ? record.habits : [];
     res.json({
       id: record.id,
       date: record.date,
-      habits: record.habits || [],
+      habits: habitsArray.filter(h => h !== null),
       completionPercentage: record.completion_percentage,
     });
   } catch (err) {
