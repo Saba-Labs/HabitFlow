@@ -14,6 +14,10 @@ export const getClient = () => {
 
 export const initDb = async () => {
   try {
+    // Test connection
+    await pool.query('SELECT 1');
+    console.log('✓ Database connection successful');
+
     await pool.query(`
       CREATE TABLE IF NOT EXISTS habits (
         id TEXT PRIMARY KEY,
@@ -54,9 +58,9 @@ export const initDb = async () => {
       )
     `);
 
-    console.log('Database tables initialized successfully');
+    console.log('✓ Database tables initialized successfully');
   } catch (err) {
-    console.error('Database initialization error:', err);
+    console.error('✗ Database initialization error:', err);
     throw err;
   }
 };

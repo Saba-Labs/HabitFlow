@@ -9,10 +9,10 @@ export const getHabits: RequestHandler = async (req, res) => {
       'SELECT * FROM habits WHERE user_id = $1 AND archived = FALSE ORDER BY "order"',
       [DEFAULT_USER_ID]
     );
-    res.json(result.rows);
+    res.json(result.rows || []);
   } catch (err) {
     console.error('Error fetching habits:', err);
-    res.status(500).json({ error: 'Failed to fetch habits' });
+    res.status(500).json({ error: 'Failed to fetch habits', details: String(err) });
   }
 };
 
