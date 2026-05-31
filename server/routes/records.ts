@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { query } from '../db';
+import { query, isDbReady } from '../db';
 import { memoryStore } from '../memory-store';
 
 export const getTodayRecord: RequestHandler = async (req, res) => {
@@ -10,6 +10,44 @@ export const getTodayRecord: RequestHandler = async (req, res) => {
     }
 
     const today = new Date().toISOString().split('T')[0];
+
+    if (!isDbReady()) {
+      let record = memoryStore.getRecord(userId, today);
+      if (!record) {
+        const recordId = `record_${today}`;
+        record = memoryStore.insertRecord({
+          id: recordId,
+          user_id: userId,
+          date: today,
+          completion_percentage: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+        const habits = memoryStore.getHabits(userId);
+        for (const habit of habits) {
+          memoryStore.insertCompletion({
+            id: `completion_${Date.now()}_${habit.id}`,
+            record_id: recordId,
+            habit_id: habit.id,
+            completed: false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+        }
+      }
+      const completions = memoryStore.getCompletions(record.id);
+      return res.json({
+        id: record.id,
+        date: record.date,
+        habits: completions.map(c => ({
+          habitId: c.habit_id,
+          completed: c.completed,
+          completedAt: c.completed_at,
+        })),
+        completionPercentage: record.completion_percentage,
+      });
+    }
+
     let result = await query(
       `SELECT dr.*,
               json_agg(json_build_object('habitId', hc.habit_id, 'completed', hc.completed, 'completedAt', hc.completed_at) ORDER BY hc.created_at) as habits
@@ -74,6 +112,22 @@ export const toggleHabit: RequestHandler = async (req, res) => {
   const { recordId, habitId } = req.params;
 
   try {
+    if (!isDbReady()) {
+      const completion = memoryStore.getCompletion(recordId, habitId);
+      if (!completion) {
+        return res.status(404).json({ error: 'Habit completion not found' });
+      }
+      const newStatus = !completion.completed;
+      memoryStore.updateCompletion(recordId, habitId, {
+        completed: newStatus,
+        completed_at: newStatus ? new Date().toISOString() : undefined,
+      });
+      const stats = memoryStore.getCompletionStats(recordId);
+      const percentage = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+      memoryStore.updateRecord(recordId, { completion_percentage: percentage });
+      return res.json({ success: true, completed: newStatus });
+    }
+
     const habitResult = await query(
       'SELECT completed FROM habit_completions WHERE record_id = $1 AND habit_id = $2',
       [recordId, habitId]
