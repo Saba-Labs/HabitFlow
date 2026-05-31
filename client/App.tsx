@@ -5,9 +5,12 @@ import { createRoot } from "react-dom/client";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { SideNav } from "@/components/SideNav";
+import { AuthProvider, useAuth } from "@/lib/auth-context";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import Login from "./pages/Login";
 import Index from "./pages/Index";
 import Habits from "./pages/Habits";
 import Calendar from "./pages/Calendar";
@@ -33,20 +36,36 @@ const InitTheme = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const AppContent = ({ mobileMenuOpen, setMobileMenuOpen }: { mobileMenuOpen: boolean; setMobileMenuOpen: (value: boolean) => void }) => (
-  <>
-    <SideNav isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
-    <Routes>
-      <Route path="/" element={<Index mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} />
-      <Route path="/habits" element={<Habits mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} />
-      <Route path="/calendar" element={<Calendar mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} />
-      <Route path="/reports" element={<Reports mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} />
-      <Route path="/achievements" element={<Achievements mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} />
-      <Route path="/settings" element={<Settings mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  </>
-);
+const AppContent = ({ mobileMenuOpen, setMobileMenuOpen }: { mobileMenuOpen: boolean; setMobileMenuOpen: (value: boolean) => void }) => {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-primary"></div>
+          <p className="text-muted-foreground mt-4">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {isAuthenticated && <SideNav isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />}
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<ProtectedRoute><Index mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} /></ProtectedRoute>} />
+        <Route path="/habits" element={<ProtectedRoute><Habits mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} /></ProtectedRoute>} />
+        <Route path="/calendar" element={<ProtectedRoute><Calendar mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} /></ProtectedRoute>} />
+        <Route path="/reports" element={<ProtectedRoute><Reports mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} /></ProtectedRoute>} />
+        <Route path="/achievements" element={<ProtectedRoute><Achievements mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><Settings mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} /></ProtectedRoute>} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
+  );
+};
 
 const App = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -57,9 +76,11 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <InitTheme>
-            <AppContent mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />
-          </InitTheme>
+          <AuthProvider>
+            <InitTheme>
+              <AppContent mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />
+            </InitTheme>
+          </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

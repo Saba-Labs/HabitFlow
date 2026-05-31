@@ -5,7 +5,9 @@ import path from "path";
 import { handleDemo } from "./routes/demo";
 import { getHabits, addHabit, updateHabit, deleteHabit } from "./routes/habits";
 import { getTodayRecord, toggleHabit } from "./routes/records";
+import { signup, login } from "./routes/auth";
 import { initDb } from "./db";
+import { authMiddleware } from "./auth";
 
 export async function createServer() {
   const app = express();
@@ -37,6 +39,14 @@ export async function createServer() {
   });
 
   app.get("/api/demo", handleDemo);
+
+  // Auth routes (no middleware required)
+  app.post("/api/auth/signup", signup);
+  app.post("/api/auth/login", login);
+
+  // Protected routes - require auth
+  app.use("/api/habits", authMiddleware);
+  app.use("/api/records", authMiddleware);
 
   // Habits routes
   app.get("/api/habits", getHabits);
