@@ -1,5 +1,5 @@
 import { Habit, HabitCompletion } from '@/types/habit';
-import { CheckCircle2, Circle } from 'lucide-react';
+import { CheckCircle2, Circle, Edit2, Trash2 } from 'lucide-react';
 
 interface HabitCardProps {
   habit: Habit;
@@ -13,6 +13,8 @@ export const HabitCard = ({
   habit,
   completion,
   onToggle,
+  onEdit,
+  onDelete,
 }: HabitCardProps) => {
   return (
     <div className={`bg-card border rounded-2xl p-5 flex items-center gap-4 transition-all hover:shadow-lg ${
@@ -34,19 +36,43 @@ export const HabitCard = ({
           </p>
         )}
       </div>
-      <button
-        onClick={() => onToggle(habit.id)}
-        className="transition-transform hover:scale-110 active:scale-95"
-      >
-        {completion.completed ? (
-          <CheckCircle2
-            size={32}
-            className="text-primary fill-primary"
-          />
-        ) : (
-          <Circle size={32} className="text-muted-foreground hover:text-primary" />
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => onToggle(habit.id)}
+          className="transition-transform hover:scale-110 active:scale-95"
+        >
+          {completion.completed ? (
+            <CheckCircle2
+              size={32}
+              className="text-primary fill-primary"
+            />
+          ) : (
+            <Circle size={32} className="text-muted-foreground hover:text-primary" />
+          )}
+        </button>
+        {onEdit && (
+          <button
+            onClick={() => onEdit(habit)}
+            className="p-2 hover:bg-muted rounded-lg transition-colors"
+            title="Edit habit"
+          >
+            <Edit2 size={18} className="text-muted-foreground hover:text-foreground" />
+          </button>
         )}
-      </button>
+        {onDelete && (
+          <button
+            onClick={() => {
+              if (confirm(`Delete "${habit.name}"?`)) {
+                onDelete(habit.id);
+              }
+            }}
+            className="p-2 hover:bg-muted rounded-lg transition-colors"
+            title="Delete habit"
+          >
+            <Trash2 size={18} className="text-muted-foreground hover:text-red-500" />
+          </button>
+        )}
+      </div>
     </div>
   );
 };

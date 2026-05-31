@@ -19,6 +19,7 @@ export default function Dashboard() {
   const [quote, setQuote] = useState<string>('');
   const [streaks, setStreaks] = useState({ current: 0, longest: 0, perfect: 0 });
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
 
   useEffect(() => {
     initializeDefaultHabits();
@@ -62,18 +63,30 @@ export default function Dashboard() {
   };
 
   const handleAddHabit = (habitData: Omit<Habit, 'id' | 'createdAt' | 'archived'>) => {
-    const newHabit: Habit = {
-      id: `habit_${Date.now()}`,
-      name: habitData.name,
-      icon: habitData.icon,
-      color: habitData.color,
-      notes: habitData.notes,
-      order: habitData.order,
-      archived: false,
-      createdAt: new Date().toISOString(),
-    };
+    if (editingHabit) {
+      // Update existing habit
+      habitStorage.updateHabit(editingHabit.id, {
+        name: habitData.name,
+        icon: habitData.icon,
+        color: habitData.color,
+        notes: habitData.notes,
+      });
+      setEditingHabit(null);
+    } else {
+      // Create new habit
+      const newHabit: Habit = {
+        id: `habit_${Date.now()}`,
+        name: habitData.name,
+        icon: habitData.icon,
+        color: habitData.color,
+        notes: habitData.notes,
+        order: habitData.order,
+        archived: false,
+        createdAt: new Date().toISOString(),
+      };
+      habitStorage.addHabit(newHabit);
+    }
 
-    habitStorage.addHabit(newHabit);
     const allHabits = habitStorage.getHabits();
     setHabits(allHabits);
 
@@ -81,6 +94,21 @@ export default function Dashboard() {
     const todayRecord = recordStorage.getOrCreateTodayRecord(allHabits);
     setRecord(todayRecord);
     setShowAddModal(false);
+  };
+
+  const handleEditHabit = (habit: Habit) => {
+    setEditingHabit(habit);
+    setShowAddModal(true);
+  };
+
+  const handleDeleteHabit = (habitId: string) => {
+    habitStorage.deleteHabit(habitId);
+    const allHabits = habitStorage.getHabits();
+    setHabits(allHabits);
+
+    // Get today's record and sync with remaining habits
+    const todayRecord = recordStorage.getOrCreateTodayRecord(allHabits);
+    setRecord(todayRecord);
   };
 
   const completedCount = record?.habits.filter(h => h.completed).length || 0;
@@ -196,6 +224,8 @@ export default function Dashboard() {
                       habit={habit}
                       completion={completion || { habitId: habit.id, completed: false }}
                       onToggle={handleToggleHabit}
+                      onEdit={handleEditHabit}
+                      onDelete={handleDeleteHabit}
                     />
                   );
                 })}
@@ -206,8 +236,12 @@ export default function Dashboard() {
 
       <AddHabitModal
         isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
+        onClose={() => {
+          setShowAddModal(false);
+          setEditingHabit(null);
+        }}
         onSave={handleAddHabit}
+        initialHabit={editingHabit || undefined}
       />
 
       <BottomNav />
