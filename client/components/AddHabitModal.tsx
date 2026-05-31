@@ -82,143 +82,146 @@ export const AddHabitModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-end z-50 sm:items-center sm:justify-center">
-      <div className="bg-card border border-border rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-foreground">
-            {initialHabit?.id ? 'Edit Habit' : 'Add New Habit'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-muted rounded-lg transition-colors"
-          >
-            <X size={24} />
-          </button>
-        </div>
-
-        {/* Habit Name */}
-        <div>
-          <label className="block text-sm font-semibold text-foreground mb-2">
-            Habit Name *
-          </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="e.g., Morning Meditation"
-            className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all"
-          />
-        </div>
-
-        {/* Icon Selection */}
-        <div>
-          <label className="block text-sm font-semibold text-foreground mb-3">
-            Icon / Emoji
-          </label>
-          <div className="space-y-3">
-            {/* Current Selection */}
-            <div className="flex items-center gap-4 bg-muted p-4 rounded-lg">
-              <div className="text-5xl">{icon}</div>
-              <div>
-                <p className="text-sm text-muted-foreground">Selected Icon</p>
-                <p className="font-semibold text-foreground">{icon}</p>
-              </div>
-            </div>
-
-            {/* Toggle Picker */}
+      <div className="bg-card border border-border rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[90vh] overflow-hidden flex flex-col">
+        {/* Scrollable Content */}
+        <div className="overflow-y-auto flex-1 p-6 space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-foreground">
+              {initialHabit?.id ? 'Edit Habit' : 'Add New Habit'}
+            </h2>
             <button
-              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              className="w-full bg-primary text-primary-foreground rounded-lg px-4 py-3 font-semibold hover:shadow-lg transition-shadow"
+              onClick={onClose}
+              className="p-2 hover:bg-muted rounded-lg transition-colors"
             >
-              {showEmojiPicker ? 'Hide Picker' : 'Choose Emoji'}
+              <X size={24} />
             </button>
+          </div>
 
-            {/* Emoji Picker */}
-            {showEmojiPicker && (
-              <div className="space-y-3 bg-muted p-4 rounded-lg">
-                {/* Suggestions Grid */}
-                <div>
-                  <p className="text-xs text-muted-foreground mb-2 font-semibold">
-                    SUGGESTED
-                  </p>
-                  <div className="grid grid-cols-6 gap-2">
-                    {EMOJI_SUGGESTIONS.map((emoji) => (
-                      <button
-                        key={emoji}
-                        onClick={() => handleEmojiSelect(emoji)}
-                        className={`text-2xl p-2 rounded-lg transition-all ${
-                          icon === emoji
-                            ? 'bg-primary/20 ring-2 ring-primary'
-                            : 'hover:bg-background'
-                        }`}
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+          {/* Habit Name */}
+          <div>
+            <label className="block text-sm font-semibold text-foreground mb-2">
+              Habit Name *
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g., Morning Meditation"
+              className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+            />
+          </div>
 
-                {/* Custom Emoji Input */}
+          {/* Icon Selection */}
+          <div>
+            <label className="block text-sm font-semibold text-foreground mb-3">
+              Icon / Emoji
+            </label>
+            <div className="space-y-3">
+              {/* Current Selection */}
+              <div className="flex items-center gap-4 bg-muted p-4 rounded-lg">
+                <div className="text-5xl">{icon}</div>
                 <div>
-                  <p className="text-xs text-muted-foreground mb-2 font-semibold">
-                    CUSTOM
-                  </p>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={customEmoji}
-                      onChange={(e) => setCustomEmoji(e.target.value)}
-                      placeholder="Paste emoji"
-                      maxLength={2}
-                      className="flex-1 bg-background border border-border rounded px-3 py-2 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                    <button
-                      onClick={handleCustomEmoji}
-                      className="bg-secondary text-secondary-foreground px-4 py-2 rounded font-semibold hover:shadow-lg transition-shadow"
-                    >
-                      Add
-                    </button>
-                  </div>
+                  <p className="text-sm text-muted-foreground">Selected Icon</p>
+                  <p className="font-semibold text-foreground">{icon}</p>
                 </div>
               </div>
-            )}
-          </div>
-        </div>
 
-        {/* Color Selection */}
-        <div>
-          <label className="block text-sm font-semibold text-foreground mb-3">
-            Color Theme
-          </label>
-          <div className="grid grid-cols-5 gap-2">
-            {COLORS.map((c) => (
+              {/* Toggle Picker */}
               <button
-                key={c}
-                onClick={() => setColor(c)}
-                className={`aspect-square rounded-lg transition-all ${c} ${
-                  color === c ? 'ring-2 ring-foreground scale-110' : 'hover:scale-105'
-                }`}
-              />
-            ))}
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                className="w-full bg-primary text-primary-foreground rounded-lg px-4 py-3 font-semibold hover:shadow-lg transition-shadow"
+              >
+                {showEmojiPicker ? 'Hide Picker' : 'Choose Emoji'}
+              </button>
+
+              {/* Emoji Picker */}
+              {showEmojiPicker && (
+                <div className="space-y-3 bg-muted p-4 rounded-lg">
+                  {/* Suggestions Grid */}
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2 font-semibold">
+                      SUGGESTED
+                    </p>
+                    <div className="grid grid-cols-6 gap-2">
+                      {EMOJI_SUGGESTIONS.map((emoji) => (
+                        <button
+                          key={emoji}
+                          onClick={() => handleEmojiSelect(emoji)}
+                          className={`text-2xl p-2 rounded-lg transition-all ${
+                            icon === emoji
+                              ? 'bg-primary/20 ring-2 ring-primary'
+                              : 'hover:bg-background'
+                          }`}
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Custom Emoji Input */}
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2 font-semibold">
+                      CUSTOM
+                    </p>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={customEmoji}
+                        onChange={(e) => setCustomEmoji(e.target.value)}
+                        placeholder="Paste emoji"
+                        maxLength={2}
+                        className="flex-1 bg-background border border-border rounded px-3 py-2 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                      <button
+                        onClick={handleCustomEmoji}
+                        className="bg-secondary text-secondary-foreground px-4 py-2 rounded font-semibold hover:shadow-lg transition-shadow"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Color Selection */}
+          <div>
+            <label className="block text-sm font-semibold text-foreground mb-3">
+              Color Theme
+            </label>
+            <div className="grid grid-cols-5 gap-2">
+              {COLORS.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setColor(c)}
+                  className={`aspect-square rounded-lg transition-all ${c} ${
+                    color === c ? 'ring-2 ring-foreground scale-110' : 'hover:scale-105'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label className="block text-sm font-semibold text-foreground mb-2">
+              Notes (Optional)
+            </label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Add any notes or reminders for this habit..."
+              rows={3}
+              className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all resize-none"
+            />
           </div>
         </div>
 
-        {/* Notes */}
-        <div>
-          <label className="block text-sm font-semibold text-foreground mb-2">
-            Notes (Optional)
-          </label>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Add any notes or reminders for this habit..."
-            rows={3}
-            className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all resize-none"
-          />
-        </div>
-
-        {/* Actions */}
-        <div className="flex gap-3 pt-4">
+        {/* Sticky Footer with Actions */}
+        <div className="border-t border-border bg-card p-6 flex gap-3 sticky bottom-0">
           <button
             onClick={onClose}
             className="flex-1 bg-muted text-foreground rounded-lg px-4 py-3 font-semibold hover:bg-muted/80 transition-colors"
@@ -227,7 +230,7 @@ export const AddHabitModal = ({
           </button>
           <button
             onClick={handleSave}
-            className="flex-1 bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-lg px-4 py-3 font-semibold hover:shadow-lg transition-shadow"
+            className="flex-1 bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-lg px-4 py-3 font-semibold hover:shadow-lg transition-shadow active:scale-95"
           >
             Save Habit
           </button>
