@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import { query } from '../db';
+import { memoryStore } from '../memory-store';
 
 const DEFAULT_USER_ID = 'default-user';
 
@@ -12,7 +13,8 @@ export const getHabits: RequestHandler = async (req, res) => {
     res.json(result.rows || []);
   } catch (err) {
     console.error('Error fetching habits:', err);
-    res.json([]);
+    const habits = memoryStore.getHabits(DEFAULT_USER_ID);
+    res.json(habits);
   }
 };
 
@@ -28,7 +30,19 @@ export const addHabit: RequestHandler = async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error('Error adding habit:', err);
-    res.status(201).json(req.body);
+    const habit = memoryStore.insertHabit({
+      id,
+      user_id: DEFAULT_USER_ID,
+      name,
+      icon,
+      color,
+      notes: notes || undefined,
+      order: order || 0,
+      archived: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+    res.status(201).json(habit);
   }
 };
 
@@ -49,7 +63,12 @@ export const updateHabit: RequestHandler = async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     console.error('Error updating habit:', err);
-    res.json({ id: habitId, ...req.body });
+    const habit = memoryStore.updateHabit(habitId, { name, icon, color, notes: notes || undefined });
+    if (habit) {
+      res.json(habit);
+    } else {
+      res.status(404).json({ error: 'Habit not found' });
+    }
   }
 };
 
@@ -66,6 +85,7 @@ export const deleteHabit: RequestHandler = async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error('Error deleting habit:', err);
-    res.json({ success: true });
+    const deleted = memoryStore.deleteHabit(habitId);
+    res.json({ success: deleted });
   }
 };
