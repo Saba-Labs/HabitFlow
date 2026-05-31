@@ -9,12 +9,19 @@ import { initDb } from "./db";
 export async function createServer() {
   const app = express();
 
-  // Initialize database
-  try {
-    await initDb();
-  } catch (err) {
-    console.error("Failed to initialize database:", err);
-    process.exit(1);
+  // Initialize database (optional for development)
+  if (process.env.DATABASE_URL) {
+    try {
+      await initDb();
+    } catch (err) {
+      console.error("Failed to initialize database:", err);
+      if (process.env.NODE_ENV === "production") {
+        process.exit(1);
+      }
+      console.warn("Continuing without database connection...");
+    }
+  } else {
+    console.log("DATABASE_URL not set, skipping database initialization");
   }
 
   // Middleware
