@@ -10,6 +10,7 @@ import { CircleProgress } from '@/components/CircleProgress';
 import { HabitCard } from '@/components/HabitCard';
 import { BottomNav } from '@/components/BottomNav';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { AddHabitModal } from '@/components/AddHabitModal';
 import { Plus, Flame, Zap } from 'lucide-react';
 
 export default function Dashboard() {
@@ -17,6 +18,7 @@ export default function Dashboard() {
   const [record, setRecord] = useState<DailyRecord | null>(null);
   const [quote, setQuote] = useState<string>('');
   const [streaks, setStreaks] = useState({ current: 0, longest: 0, perfect: 0 });
+  const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
     initializeDefaultHabits();
@@ -59,18 +61,14 @@ export default function Dashboard() {
     setRecord(updatedRecord);
   };
 
-  const handleAddHabit = () => {
-    const name = prompt('Habit name:');
-    if (!name) return;
-    const icon = prompt('Icon (emoji):', '⭐');
-    if (!icon) return;
-
+  const handleAddHabit = (habitData: Omit<Habit, 'id' | 'createdAt' | 'archived'>) => {
     const newHabit: Habit = {
       id: `habit_${Date.now()}`,
-      name,
-      icon: icon || '⭐',
-      color: 'bg-blue-500',
-      order: habits.length,
+      name: habitData.name,
+      icon: habitData.icon,
+      color: habitData.color,
+      notes: habitData.notes,
+      order: habitData.order,
       archived: false,
       createdAt: new Date().toISOString(),
     };
@@ -82,6 +80,7 @@ export default function Dashboard() {
     // Get today's record and sync with new habits
     const todayRecord = recordStorage.getOrCreateTodayRecord(allHabits);
     setRecord(todayRecord);
+    setShowAddModal(false);
   };
 
   const completedCount = record?.habits.filter(h => h.completed).length || 0;
@@ -166,7 +165,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-foreground">Today's Habits</h2>
             <button
-              onClick={handleAddHabit}
+              onClick={() => setShowAddModal(true)}
               className="bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-full p-3 hover:shadow-lg transition-shadow active:scale-95"
             >
               <Plus size={20} />
@@ -176,7 +175,7 @@ export default function Dashboard() {
             <div className="bg-card border border-border rounded-2xl p-8 text-center">
               <p className="text-muted-foreground mb-4">No habits yet</p>
               <button
-                onClick={handleAddHabit}
+                onClick={() => setShowAddModal(true)}
                 className="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:shadow-lg transition-shadow"
               >
                 Create Your First Habit
@@ -204,6 +203,12 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      <AddHabitModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSave={handleAddHabit}
+      />
 
       <BottomNav />
     </div>
