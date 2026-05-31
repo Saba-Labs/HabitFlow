@@ -17,6 +17,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const savedToken = localStorage.getItem('authToken');
     setToken(savedToken);
     setLoading(false);
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'authToken') {
+        setToken(e.newValue);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const logout = () => {
