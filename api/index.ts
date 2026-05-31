@@ -5,9 +5,14 @@ import serverless from "serverless-http";
 let handler: any;
 
 export default async (req: any, res: any) => {
-  if (!handler) {
-    const app = await createServer();
-    handler = serverless(app);
+  try {
+    if (!handler) {
+      const app = await createServer();
+      handler = serverless(app);
+    }
+    return handler(req, res);
+  } catch (error) {
+    console.error("API Error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
-  return handler(req, res);
 };
