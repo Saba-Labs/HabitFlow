@@ -113,14 +113,7 @@ export default function HabitsPage({ mobileMenuOpen, setMobileMenuOpen }: Habits
             >
               <Menu size={20} />
             </button>
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-                My Habits
-              </h1>
-              <p className="text-sm text-muted-foreground mt-2">
-                Manage and customize your daily habits
-              </p>
-            </div>
+            <h1 className="text-3xl font-bold text-foreground">Habits</h1>
           </div>
           <button
             onClick={() => {
