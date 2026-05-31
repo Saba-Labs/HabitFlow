@@ -1,10 +1,14 @@
 import { useMemo } from 'react';
-import { BottomNav } from '@/components/BottomNav';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { recordStorage, habitStorage } from '@/lib/storage';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
-export default function Reports() {
+interface ReportsProps {
+  mobileMenuOpen: boolean;
+  setMobileMenuOpen: (value: boolean) => void;
+}
+
+export default function Reports({ mobileMenuOpen, setMobileMenuOpen }: ReportsProps) {
   const records = recordStorage.getRecords();
   const habits = habitStorage.getHabits().filter(h => !h.archived);
 
@@ -341,7 +345,6 @@ export default function Reports() {
         </div>
       </div>
 
-      <BottomNav />
     </div>
   );
 }

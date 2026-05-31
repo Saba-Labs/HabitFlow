@@ -1,10 +1,14 @@
 import { useState } from 'react';
-import { BottomNav } from '@/components/BottomNav';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { recordStorage, habitStorage } from '@/lib/storage';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-export default function Calendar() {
+interface CalendarProps {
+  mobileMenuOpen: boolean;
+  setMobileMenuOpen: (value: boolean) => void;
+}
+
+export default function Calendar({ mobileMenuOpen, setMobileMenuOpen }: CalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const records = recordStorage.getRecords();
 
@@ -165,7 +169,6 @@ export default function Calendar() {
         </div>
       </div>
 
-      <BottomNav />
     </div>
   );
 }

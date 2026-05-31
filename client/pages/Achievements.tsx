@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { BottomNav } from '@/components/BottomNav';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { recordStorage, habitStorage } from '@/lib/storage';
 import { Lock } from 'lucide-react';
@@ -13,7 +12,12 @@ interface Badge {
   unlockedDate?: string;
 }
 
-export default function Achievements() {
+interface AchievementsProps {
+  mobileMenuOpen: boolean;
+  setMobileMenuOpen: (value: boolean) => void;
+}
+
+export default function Achievements({ mobileMenuOpen, setMobileMenuOpen }: AchievementsProps) {
   const records = recordStorage.getRecords();
   const habits = habitStorage.getHabits();
 
@@ -247,7 +251,6 @@ export default function Achievements() {
         </div>
       </div>
 
-      <BottomNav />
     </div>
   );
 }

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { BottomNav } from '@/components/BottomNav';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { recordStorage, habitStorage } from '@/lib/storage';
 import {
@@ -11,7 +10,12 @@ import {
   AlertCircle,
 } from 'lucide-react';
 
-export default function Settings() {
+interface SettingsProps {
+  mobileMenuOpen: boolean;
+  setMobileMenuOpen: (value: boolean) => void;
+}
+
+export default function Settings({ mobileMenuOpen, setMobileMenuOpen }: SettingsProps) {
   const [copied, setCopied] = useState(false);
   const [showConfirmReset, setShowConfirmReset] = useState(false);
 
@@ -267,7 +271,6 @@ export default function Settings() {
         </div>
       </div>
 
-      <BottomNav />
     </div>
   );
 }

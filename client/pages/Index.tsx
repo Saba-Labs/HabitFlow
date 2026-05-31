@@ -9,12 +9,16 @@ import { SideNav } from '@/components/SideNav';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Flame, Zap, Menu } from 'lucide-react';
 
-export default function Dashboard() {
+interface DashboardProps {
+  mobileMenuOpen: boolean;
+  setMobileMenuOpen: (value: boolean) => void;
+}
+
+export default function Dashboard({ mobileMenuOpen, setMobileMenuOpen }: DashboardProps) {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [record, setRecord] = useState<DailyRecord | null>(null);
   const [quote, setQuote] = useState<string>('');
   const [streaks, setStreaks] = useState({ current: 0, longest: 0, perfect: 0 });
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -182,7 +186,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <SideNav isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
     </div>
   );
 }
