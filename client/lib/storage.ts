@@ -63,17 +63,27 @@ export const recordStorage = {
     const today = new Date().toISOString().split('T')[0];
     let record = records.find(r => r.date === today);
 
+    const activeHabits = habits.filter(h => !h.archived);
+
     if (!record) {
       record = {
         id: `record_${today}`,
         date: today,
-        habits: habits
-          .filter(h => !h.archived)
-          .map(h => ({ habitId: h.id, completed: false })),
+        habits: activeHabits.map(h => ({ habitId: h.id, completed: false })),
         completionPercentage: 0,
       };
       records.push(record);
       recordStorage.saveRecords(records);
+    } else {
+      // Add any new habits that aren't in the record yet
+      const existingHabitIds = record.habits.map(h => h.habitId);
+      const newHabits = activeHabits.filter(h => !existingHabitIds.includes(h.id));
+
+      if (newHabits.length > 0) {
+        record.habits.push(...newHabits.map(h => ({ habitId: h.id, completed: false })));
+        record.completionPercentage = calculateCompletion(record.habits);
+        recordStorage.saveRecords(records);
+      }
     }
 
     return record;

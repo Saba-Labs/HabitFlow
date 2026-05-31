@@ -79,7 +79,7 @@ export default function Dashboard() {
     const allHabits = habitStorage.getHabits();
     setHabits(allHabits);
 
-    // Create today's record with new habit
+    // Get today's record and sync with new habits
     const todayRecord = recordStorage.getOrCreateTodayRecord(allHabits);
     setRecord(todayRecord);
   };
