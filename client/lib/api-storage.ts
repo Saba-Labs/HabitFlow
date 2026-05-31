@@ -4,15 +4,28 @@ async function fetchApi<T>(
   endpoint: string,
   options?: RequestInit
 ): Promise<T> {
+  const token = localStorage.getItem('authToken');
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(`/api${endpoint}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     ...options,
   });
 
   if (!response.ok) {
-    throw new Error(`API error: ${response.statusText}`);
+    if (response.status === 401) {
+      localStorage.removeItem('authToken');
+      window.location.href = '/login';
+      throw new Error('Session expired. Please login again.');
+    }
+    const errorText = await response.text();
+    throw new Error(`API error: ${response.status} - ${errorText || response.statusText}`);
   }
 
   return response.json();

@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useAuth } from '@/lib/auth-context';
 import { recordStorage, habitStorage } from '@/lib/storage';
 import {
   Download,
@@ -9,6 +11,7 @@ import {
   Check,
   AlertCircle,
   Menu,
+  LogOut,
 } from 'lucide-react';
 
 interface SettingsProps {
@@ -19,6 +22,13 @@ interface SettingsProps {
 export default function Settings({ mobileMenuOpen, setMobileMenuOpen }: SettingsProps) {
   const [copied, setCopied] = useState(false);
   const [showConfirmReset, setShowConfirmReset] = useState(false);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const handleExportData = () => {
     const habits = habitStorage.getHabits();
@@ -239,6 +249,21 @@ export default function Settings({ mobileMenuOpen, setMobileMenuOpen }: Settings
               </div>
             </div>
           )}
+        </div>
+
+        {/* Account */}
+        <div>
+          <h2 className="text-xl font-bold text-foreground mb-4">Account</h2>
+          <button
+            onClick={handleLogout}
+            className="w-full bg-card border border-border rounded-2xl p-6 flex items-center gap-4 hover:bg-red-50 dark:hover:bg-red-950 transition-colors text-left text-red-600"
+          >
+            <LogOut size={24} className="flex-shrink-0" />
+            <div>
+              <h3 className="font-semibold">Sign Out</h3>
+              <p className="text-sm text-red-500">Log out from your account</p>
+            </div>
+          </button>
         </div>
 
         {/* About */}
