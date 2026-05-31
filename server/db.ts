@@ -1,22 +1,39 @@
 import { Pool } from 'pg';
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+let pool: Pool | null = null;
+let isDbAvailable = false;
 
-export const query = (text: string, params?: any[]) => {
+if (process.env.DATABASE_URL) {
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+  });
+}
+
+export const query = async (text: string, params?: any[]) => {
+  if (!isDbAvailable || !pool) {
+    throw new Error('Database not available');
+  }
   return pool.query(text, params);
 };
 
-export const getClient = () => {
+export const getClient = async () => {
+  if (!isDbAvailable || !pool) {
+    throw new Error('Database not available');
+  }
   return pool.connect();
 };
 
 export const initDb = async () => {
+  if (!pool) {
+    console.log('DATABASE_URL not set, database features disabled');
+    return;
+  }
+
   try {
     // Test connection
     await pool.query('SELECT 1');
     console.log('✓ Database connection successful');
+    isDbAvailable = true;
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS habits (
@@ -61,6 +78,6 @@ export const initDb = async () => {
     console.log('✓ Database tables initialized successfully');
   } catch (err) {
     console.error('✗ Database initialization error:', err);
-    throw err;
+    isDbAvailable = false;
   }
 };
