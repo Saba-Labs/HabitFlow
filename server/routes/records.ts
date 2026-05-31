@@ -58,11 +58,14 @@ export const getTodayRecord: RequestHandler = async (req, res) => {
 
     let result = await query(
       `SELECT dr.*,
-              COALESCE(json_agg(json_build_object('habitId', hc.habit_id, 'completed', hc.completed, 'completedAt', hc.completed_at) ORDER BY hc.created_at) FILTER (WHERE hc.id IS NOT NULL), '[]'::json) as habits
+              COALESCE(
+                (SELECT json_agg(json_build_object('habitId', habit_id, 'completed', completed, 'completedAt', completed_at) ORDER BY created_at)
+                 FROM habit_completions
+                 WHERE record_id = dr.id),
+                '[]'::json
+              ) as habits
        FROM daily_records dr
-       LEFT JOIN habit_completions hc ON dr.id = hc.record_id
-       WHERE dr.user_id = $1 AND dr.date = $2
-       GROUP BY dr.id`,
+       WHERE dr.user_id = $1 AND dr.date = $2`,
       [userId, today]
     );
 
@@ -89,11 +92,14 @@ export const getTodayRecord: RequestHandler = async (req, res) => {
 
       result = await query(
         `SELECT dr.*,
-                COALESCE(json_agg(json_build_object('habitId', hc.habit_id, 'completed', hc.completed, 'completedAt', hc.completed_at)) FILTER (WHERE hc.id IS NOT NULL), '[]'::json) as habits
+                COALESCE(
+                  (SELECT json_agg(json_build_object('habitId', habit_id, 'completed', completed, 'completedAt', completed_at) ORDER BY created_at)
+                   FROM habit_completions
+                   WHERE record_id = dr.id),
+                  '[]'::json
+                ) as habits
          FROM daily_records dr
-         LEFT JOIN habit_completions hc ON dr.id = hc.record_id
-         WHERE dr.id = $1
-         GROUP BY dr.id`,
+         WHERE dr.id = $1`,
         [recordId]
       );
     }
@@ -111,8 +117,9 @@ export const getTodayRecord: RequestHandler = async (req, res) => {
       completionPercentage: record.completion_percentage,
     });
   } catch (err) {
-    console.error('Error getting today record:', err);
-    res.status(500).json({ error: 'Failed to fetch record' });
+    console.error('Error getting today record:', err instanceof Error ? err.message : err);
+    console.error('Full error:', err);
+    res.status(500).json({ error: 'Failed to fetch record', details: err instanceof Error ? err.message : String(err) });
   }
 };
 
