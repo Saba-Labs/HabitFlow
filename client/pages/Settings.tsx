@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { BottomNav } from '@/components/BottomNav';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { recordStorage, habitStorage } from '@/lib/storage';
 import {
@@ -9,9 +8,15 @@ import {
   Copy,
   Check,
   AlertCircle,
+  Menu,
 } from 'lucide-react';
 
-export default function Settings() {
+interface SettingsProps {
+  mobileMenuOpen: boolean;
+  setMobileMenuOpen: (value: boolean) => void;
+}
+
+export default function Settings({ mobileMenuOpen, setMobileMenuOpen }: SettingsProps) {
   const [copied, setCopied] = useState(false);
   const [showConfirmReset, setShowConfirmReset] = useState(false);
 
@@ -84,7 +89,16 @@ export default function Settings() {
     <div className="min-h-screen pb-24 bg-background">
       <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm border-b border-border">
         <div className="max-w-2xl mx-auto px-4 py-6 flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-foreground">Settings</h1>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="sm:hidden p-2 hover:bg-muted rounded-lg transition-colors text-foreground"
+              aria-label="Toggle menu"
+            >
+              <Menu size={20} />
+            </button>
+            <h1 className="text-3xl font-bold text-foreground">Settings</h1>
+          </div>
           <ThemeToggle />
         </div>
       </div>
@@ -267,7 +281,6 @@ export default function Settings() {
         </div>
       </div>
 
-      <BottomNav />
     </div>
   );
 }
