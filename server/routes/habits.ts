@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import { query } from '../db';
+import { memoryStore } from '../memory-store';
 
 const DEFAULT_USER_ID = 'default-user';
 
@@ -12,13 +13,19 @@ export const getHabits: RequestHandler = async (req, res) => {
     res.json(result.rows || []);
   } catch (err) {
     console.error('Error fetching habits:', err);
-    res.status(500).json({ error: 'Failed to fetch habits', details: String(err) });
+    const habits = memoryStore.getHabits(DEFAULT_USER_ID);
+    res.json(habits);
   }
 };
 
 export const addHabit: RequestHandler = async (req, res) => {
   try {
-    const { id, name, icon, color, notes, order } = req.body;
+    let { id, name, icon, color, notes, order } = req.body;
+
+    if (!id) {
+      id = `habit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+
     const result = await query(
       `INSERT INTO habits (id, user_id, name, icon, color, notes, "order", archived, created_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, FALSE, CURRENT_TIMESTAMP)
@@ -28,7 +35,25 @@ export const addHabit: RequestHandler = async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error('Error adding habit:', err);
-    res.status(500).json({ error: 'Failed to add habit' });
+    let { id, name, icon, color, notes, order } = req.body;
+
+    if (!id) {
+      id = `habit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+
+    const habit = memoryStore.insertHabit({
+      id,
+      user_id: DEFAULT_USER_ID,
+      name,
+      icon,
+      color,
+      notes: notes || undefined,
+      order: order || 0,
+      archived: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+    res.status(201).json(habit);
   }
 };
 
@@ -49,7 +74,12 @@ export const updateHabit: RequestHandler = async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     console.error('Error updating habit:', err);
-    res.status(500).json({ error: 'Failed to update habit' });
+    const habit = memoryStore.updateHabit(habitId, { name, icon, color, notes: notes || undefined });
+    if (habit) {
+      res.json(habit);
+    } else {
+      res.status(404).json({ error: 'Habit not found' });
+    }
   }
 };
 
@@ -66,6 +96,7 @@ export const deleteHabit: RequestHandler = async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error('Error deleting habit:', err);
-    res.status(500).json({ error: 'Failed to delete habit' });
+    const deleted = memoryStore.deleteHabit(habitId);
+    res.json({ success: deleted });
   }
 };

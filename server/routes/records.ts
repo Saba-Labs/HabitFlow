@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import { query } from '../db';
+import { memoryStore } from '../memory-store';
 
 const DEFAULT_USER_ID = 'default-user';
 
@@ -7,7 +8,7 @@ export const getTodayRecord: RequestHandler = async (req, res) => {
   try {
     const today = new Date().toISOString().split('T')[0];
     let result = await query(
-      `SELECT dr.*, 
+      `SELECT dr.*,
               json_agg(json_build_object('habitId', hc.habit_id, 'completed', hc.completed, 'completedAt', hc.completed_at) ORDER BY hc.created_at) as habits
        FROM daily_records dr
        LEFT JOIN habit_completions hc ON dr.id = hc.record_id
@@ -38,7 +39,7 @@ export const getTodayRecord: RequestHandler = async (req, res) => {
       }
 
       result = await query(
-        `SELECT dr.*, 
+        `SELECT dr.*,
                 json_agg(json_build_object('habitId', hc.habit_id, 'completed', hc.completed, 'completedAt', hc.completed_at)) as habits
          FROM daily_records dr
          LEFT JOIN habit_completions hc ON dr.id = hc.record_id
@@ -57,14 +58,58 @@ export const getTodayRecord: RequestHandler = async (req, res) => {
     });
   } catch (err) {
     console.error('Error getting today record:', err);
-    res.status(500).json({ error: 'Failed to get record' });
+    const today = new Date().toISOString().split('T')[0];
+    const recordId = `record_${today}`;
+
+    // Try to get from memory store
+    let record = memoryStore.getRecord(DEFAULT_USER_ID, today);
+    if (!record) {
+      record = memoryStore.insertRecord({
+        id: recordId,
+        user_id: DEFAULT_USER_ID,
+        date: today,
+        completion_percentage: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+    }
+
+    // Get habits and create completions
+    const habits = memoryStore.getHabits(DEFAULT_USER_ID);
+    const completions = memoryStore.getCompletions(recordId);
+
+    // Add missing habit completions
+    for (const habit of habits) {
+      if (!completions.find(c => c.habit_id === habit.id)) {
+        memoryStore.insertCompletion({
+          id: `completion_${Date.now()}_${habit.id}`,
+          record_id: recordId,
+          habit_id: habit.id,
+          completed: false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+      }
+    }
+
+    const allCompletions = memoryStore.getCompletions(recordId);
+    res.json({
+      id: record.id,
+      date: record.date,
+      habits: allCompletions.map(c => ({
+        habitId: c.habit_id,
+        completed: c.completed,
+        completedAt: c.completed_at,
+      })),
+      completionPercentage: record.completion_percentage,
+    });
   }
 };
 
 export const toggleHabit: RequestHandler = async (req, res) => {
+  const { recordId, habitId } = req.params;
+
   try {
-    const { recordId, habitId } = req.params;
-    
     const habitResult = await query(
       'SELECT completed FROM habit_completions WHERE record_id = $1 AND habit_id = $2',
       [recordId, habitId]
@@ -102,6 +147,22 @@ export const toggleHabit: RequestHandler = async (req, res) => {
     res.json({ success: true, completed: newStatus });
   } catch (err) {
     console.error('Error toggling habit:', err);
-    res.status(500).json({ error: 'Failed to toggle habit' });
+    const completion = memoryStore.getCompletion(recordId, habitId);
+    if (completion) {
+      const newStatus = !completion.completed;
+      const completedAt = newStatus ? new Date().toISOString() : undefined;
+      memoryStore.updateCompletion(recordId, habitId, {
+        completed: newStatus,
+        completed_at: completedAt,
+      });
+
+      const stats = memoryStore.getCompletionStats(recordId);
+      const percentage = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+      memoryStore.updateRecord(recordId, { completion_percentage: percentage });
+
+      res.json({ success: true, completed: newStatus });
+    } else {
+      res.status(404).json({ error: 'Habit completion not found' });
+    }
   }
 };
