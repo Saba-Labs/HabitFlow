@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { recordStorage, habitStorage } from '@/lib/storage';
 import { Lock, Menu } from 'lucide-react';
+import { useMobileMenu } from '@/lib/mobile-menu-context';
 
 interface Badge {
   id: string;
@@ -12,12 +13,8 @@ interface Badge {
   unlockedDate?: string;
 }
 
-interface AchievementsProps {
-  mobileMenuOpen: boolean;
-  setMobileMenuOpen: (value: boolean) => void;
-}
-
-export default function Achievements({ mobileMenuOpen, setMobileMenuOpen }: AchievementsProps) {
+export default function Achievements() {
+  const { mobileMenuOpen, setMobileMenuOpen } = useMobileMenu();
   const records = recordStorage.getRecords();
   const habits = habitStorage.getHabits();
 

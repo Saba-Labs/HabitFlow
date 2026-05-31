@@ -5,16 +5,12 @@ import { habitStorage, initializeDefaultHabits } from '@/lib/storage';
 import { getDailyQuote } from '@/lib/quotes';
 import { CircleProgress } from '@/components/CircleProgress';
 import { HabitCard } from '@/components/HabitCard';
-import { SideNav } from '@/components/SideNav';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Flame, Zap, Menu } from 'lucide-react';
+import { useMobileMenu } from '@/lib/mobile-menu-context';
 
-interface DashboardProps {
-  mobileMenuOpen: boolean;
-  setMobileMenuOpen: (value: boolean) => void;
-}
-
-export default function Dashboard({ mobileMenuOpen, setMobileMenuOpen }: DashboardProps) {
+export default function Dashboard() {
+  const { mobileMenuOpen, setMobileMenuOpen } = useMobileMenu();
   const [habits, setHabits] = useState<Habit[]>([]);
   const [record, setRecord] = useState<DailyRecord | null>(null);
   const [quote, setQuote] = useState<string>('');

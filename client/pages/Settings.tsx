@@ -13,13 +13,10 @@ import {
   Menu,
   LogOut,
 } from 'lucide-react';
+import { useMobileMenu } from '@/lib/mobile-menu-context';
 
-interface SettingsProps {
-  mobileMenuOpen: boolean;
-  setMobileMenuOpen: (value: boolean) => void;
-}
-
-export default function Settings({ mobileMenuOpen, setMobileMenuOpen }: SettingsProps) {
+export default function Settings() {
+  const { mobileMenuOpen, setMobileMenuOpen } = useMobileMenu();
   const [copied, setCopied] = useState(false);
   const [showConfirmReset, setShowConfirmReset] = useState(false);
   const { logout } = useAuth();

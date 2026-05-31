@@ -4,13 +4,10 @@ import { apiHabitStorage } from '@/lib/api-storage';
 import { habitStorage, initializeDefaultHabits } from '@/lib/storage';
 import { AddHabitModal } from '@/components/AddHabitModal';
 import { Plus, Edit2, Trash2, Menu } from 'lucide-react';
+import { useMobileMenu } from '@/lib/mobile-menu-context';
 
-interface HabitsPageProps {
-  mobileMenuOpen: boolean;
-  setMobileMenuOpen: (value: boolean) => void;
-}
-
-export default function HabitsPage({ mobileMenuOpen, setMobileMenuOpen }: HabitsPageProps) {
+export default function HabitsPage() {
+  const { mobileMenuOpen, setMobileMenuOpen } = useMobileMenu();
   const [habits, setHabits] = useState<Habit[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
