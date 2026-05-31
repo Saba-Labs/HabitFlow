@@ -96,6 +96,7 @@ export const deleteHabit: RequestHandler = async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error('Error deleting habit:', err);
+    const { habitId } = req.params;
     const deleted = memoryStore.deleteHabit(habitId);
     res.json({ success: deleted });
   }
