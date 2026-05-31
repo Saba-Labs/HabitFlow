@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import path from "path";
 import { handleDemo } from "./routes/demo";
 import { getHabits, addHabit, updateHabit, deleteHabit } from "./routes/habits";
 import { getTodayRecord, toggleHabit } from "./routes/records";
@@ -46,6 +47,11 @@ export async function createServer() {
   // Records routes
   app.get("/api/records/today", getTodayRecord);
   app.put("/api/records/:recordId/habits/:habitId", toggleHabit);
+
+  // SPA fallback - serve index.html for all non-API routes
+  app.get("*", (_req, res) => {
+    res.sendFile(path.join(__dirname, "../index.html"));
+  });
 
   return app;
 }
