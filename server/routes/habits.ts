@@ -20,7 +20,12 @@ export const getHabits: RequestHandler = async (req, res) => {
 
 export const addHabit: RequestHandler = async (req, res) => {
   try {
-    const { id, name, icon, color, notes, order } = req.body;
+    let { id, name, icon, color, notes, order } = req.body;
+
+    if (!id) {
+      id = `habit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+
     const result = await query(
       `INSERT INTO habits (id, user_id, name, icon, color, notes, "order", archived, created_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, FALSE, CURRENT_TIMESTAMP)
@@ -30,6 +35,12 @@ export const addHabit: RequestHandler = async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error('Error adding habit:', err);
+    let { id, name, icon, color, notes, order } = req.body;
+
+    if (!id) {
+      id = `habit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+
     const habit = memoryStore.insertHabit({
       id,
       user_id: DEFAULT_USER_ID,
