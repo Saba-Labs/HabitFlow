@@ -1,6 +1,5 @@
 {
   "buildCommand": "pnpm build",
   "installCommand": "pnpm install",
-  "framework": "vite",
-  "public": "dist/spa"
+  "framework": "vite"
 }
