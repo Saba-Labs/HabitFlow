@@ -48,10 +48,12 @@ export async function createServer() {
   app.get("/api/records/today", getTodayRecord);
   app.put("/api/records/:recordId/habits/:habitId", toggleHabit);
 
-  // SPA fallback - serve index.html for all non-API routes
-  app.get("*", (_req, res) => {
-    res.sendFile(path.join(__dirname, "../index.html"));
-  });
+  // SPA fallback - handled by Vite in development, by static files in production
+  if (process.env.NODE_ENV === "production") {
+    app.get("*", (_req, res) => {
+      res.sendFile(path.join(__dirname, "../spa/index.html"));
+    });
+  }
 
   return app;
 }
