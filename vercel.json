@@ -1,16 +1,19 @@
 {
-  "buildCommand": "pnpm build",
-  "installCommand": "pnpm install",
-  "framework": null,
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "framework": "vite",
   "outputDirectory": "dist/spa",
-  "rewrites": [
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api"
+      "src": "/api/(.*)",
+      "dest": "server/index.ts"
     },
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
