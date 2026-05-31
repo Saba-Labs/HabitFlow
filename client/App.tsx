@@ -9,7 +9,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { SideNav } from "@/components/SideNav";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Login from "./pages/Login";
 import Index from "./pages/Index";
 import Habits from "./pages/Habits";
@@ -36,7 +35,15 @@ const InitTheme = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const AppContent = ({ mobileMenuOpen, setMobileMenuOpen }: { mobileMenuOpen: boolean; setMobileMenuOpen: (value: boolean) => void }) => {
+const ProtectedLayout = ({
+  component,
+  mobileMenuOpen,
+  setMobileMenuOpen
+}: {
+  component: React.ReactNode;
+  mobileMenuOpen: boolean;
+  setMobileMenuOpen: (value: boolean) => void;
+}) => {
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
@@ -50,20 +57,30 @@ const AppContent = ({ mobileMenuOpen, setMobileMenuOpen }: { mobileMenuOpen: boo
     );
   }
 
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+
   return (
     <>
-      {isAuthenticated && <SideNav isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />}
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/" element={<ProtectedRoute><Index mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} /></ProtectedRoute>} />
-        <Route path="/habits" element={<ProtectedRoute><Habits mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} /></ProtectedRoute>} />
-        <Route path="/calendar" element={<ProtectedRoute><Calendar mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} /></ProtectedRoute>} />
-        <Route path="/reports" element={<ProtectedRoute><Reports mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} /></ProtectedRoute>} />
-        <Route path="/achievements" element={<ProtectedRoute><Achievements mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} /></ProtectedRoute>} />
-        <Route path="/settings" element={<ProtectedRoute><Settings mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} /></ProtectedRoute>} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <SideNav isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
+      {component}
     </>
+  );
+};
+
+const AppContent = ({ mobileMenuOpen, setMobileMenuOpen }: { mobileMenuOpen: boolean; setMobileMenuOpen: (value: boolean) => void }) => {
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/" element={<ProtectedLayout component={<Index mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} />
+      <Route path="/habits" element={<ProtectedLayout component={<Habits mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} />
+      <Route path="/calendar" element={<ProtectedLayout component={<Calendar mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} />
+      <Route path="/reports" element={<ProtectedLayout component={<Reports mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} />
+      <Route path="/achievements" element={<ProtectedLayout component={<Achievements mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} />
+      <Route path="/settings" element={<ProtectedLayout component={<Settings mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 };
 

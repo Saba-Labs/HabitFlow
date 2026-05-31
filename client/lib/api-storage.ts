@@ -19,7 +19,13 @@ async function fetchApi<T>(
   });
 
   if (!response.ok) {
-    throw new Error(`API error: ${response.statusText}`);
+    if (response.status === 401) {
+      localStorage.removeItem('authToken');
+      window.location.href = '/login';
+      throw new Error('Session expired. Please login again.');
+    }
+    const errorText = await response.text();
+    throw new Error(`API error: ${response.status} - ${errorText || response.statusText}`);
   }
 
   return response.json();
