@@ -3,7 +3,7 @@ import { Habit } from '@/types/habit';
 import { apiHabitStorage } from '@/lib/api-storage';
 import { habitStorage, initializeDefaultHabits } from '@/lib/storage';
 import { AddHabitModal } from '@/components/AddHabitModal';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Menu } from 'lucide-react';
 
 interface HabitsPageProps {
   mobileMenuOpen: boolean;
@@ -105,13 +105,22 @@ export default function HabitsPage({ mobileMenuOpen, setMobileMenuOpen }: Habits
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-              My Habits
-            </h1>
-            <p className="text-sm text-muted-foreground mt-2">
-              Manage and customize your daily habits
-            </p>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="sm:hidden p-2 hover:bg-muted rounded-lg transition-colors text-foreground"
+              aria-label="Toggle menu"
+            >
+              <Menu size={20} />
+            </button>
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                My Habits
+              </h1>
+              <p className="text-sm text-muted-foreground mt-2">
+                Manage and customize your daily habits
+              </p>
+            </div>
           </div>
           <button
             onClick={() => {
