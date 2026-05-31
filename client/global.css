@@ -136,4 +136,10 @@
   .soft-shadow {
     @apply shadow-lg shadow-black/5;
   }
+
+  @media (min-width: 640px) {
+    body {
+      @apply pl-64;
+    }
+  }
 }
