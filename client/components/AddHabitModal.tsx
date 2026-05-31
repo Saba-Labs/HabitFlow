@@ -83,21 +83,21 @@ export const AddHabitModal = ({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-end z-50 sm:items-center sm:justify-center">
       <div className="bg-card border border-border rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[90vh] overflow-hidden flex flex-col">
+        {/* Header - Fixed */}
+        <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
+          <h2 className="text-2xl font-bold text-foreground">
+            {initialHabit?.id ? 'Edit Habit' : 'Add New Habit'}
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-muted rounded-lg transition-colors"
+          >
+            <X size={24} />
+          </button>
+        </div>
+
         {/* Scrollable Content */}
         <div className="overflow-y-auto flex-1 p-6 space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-foreground">
-              {initialHabit?.id ? 'Edit Habit' : 'Add New Habit'}
-            </h2>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-muted rounded-lg transition-colors"
-            >
-              <X size={24} />
-            </button>
-          </div>
-
           {/* Habit Name */}
           <div>
             <label className="block text-sm font-semibold text-foreground mb-2">
@@ -221,7 +221,7 @@ export const AddHabitModal = ({
         </div>
 
         {/* Sticky Footer with Actions */}
-        <div className="border-t border-border bg-card p-6 flex gap-3 sticky bottom-0">
+        <div className="border-t border-border bg-card p-6 flex gap-3 flex-shrink-0">
           <button
             onClick={onClose}
             className="flex-1 bg-muted text-foreground rounded-lg px-4 py-3 font-semibold hover:bg-muted/80 transition-colors"
