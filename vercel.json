@@ -2,6 +2,7 @@
   "buildCommand": "pnpm build",
   "installCommand": "pnpm install",
   "framework": null,
+  "public": "dist/spa",
   "rewrites": [
     {
       "source": "/api/(.*)",
@@ -9,7 +10,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/api"
+      "destination": "/index.html"
     }
   ]
 }
