@@ -12,7 +12,7 @@
    * A different format will require also updating the theme in tailwind.config.ts.
   */
   :root {
-    --background: 60 30% 97%;
+    --background: 0 0% 100%;
     --foreground: 220 15% 15%;
 
     --card: 0 0% 100%;
@@ -21,16 +21,16 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 15% 15%;
 
-    --primary: 220 90% 56%;
+    --primary: 264 92% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 160 84% 56%;
+    --secondary: 162 92% 54%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 215 16% 89%;
     --muted-foreground: 215 14% 45%;
 
-    --accent: 280 85% 62%;
+    --accent: 37 92% 56%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
@@ -38,7 +38,7 @@
 
     --border: 215 20% 88%;
     --input: 215 20% 92%;
-    --ring: 220 90% 56%;
+    --ring: 264 92% 60%;
 
     --radius: 1rem;
 
@@ -60,41 +60,41 @@
   }
 
   .dark {
-    --background: 220 25% 12%;
-    --foreground: 220 14% 92%;
+    --background: 220 15% 8%;
+    --foreground: 220 14% 96%;
 
-    --card: 220 20% 18%;
-    --card-foreground: 220 14% 92%;
+    --card: 220 20% 14%;
+    --card-foreground: 220 14% 96%;
 
-    --popover: 220 20% 18%;
-    --popover-foreground: 220 14% 92%;
+    --popover: 220 20% 14%;
+    --popover-foreground: 220 14% 96%;
 
-    --primary: 220 90% 56%;
+    --primary: 264 92% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 160 84% 56%;
+    --secondary: 162 92% 54%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 215 18% 35%;
-    --muted-foreground: 215 16% 70%;
+    --muted: 220 18% 28%;
+    --muted-foreground: 220 16% 72%;
 
-    --accent: 280 85% 62%;
+    --accent: 37 92% 56%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 220 18% 25%;
-    --input: 220 18% 22%;
-    --ring: 220 90% 56%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --border: 220 20% 22%;
+    --input: 220 20% 20%;
+    --ring: 264 92% 60%;
+    --sidebar-background: 220 15% 10%;
+    --sidebar-foreground: 220 14% 92%;
+    --sidebar-primary: 264 92% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 220 20% 20%;
+    --sidebar-accent-foreground: 220 14% 96%;
+    --sidebar-border: 220 20% 22%;
+    --sidebar-ring: 264 92% 60%;
   }
 }
 
