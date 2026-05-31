@@ -1,87 +1,61 @@
 import { useEffect, useState } from 'react';
 import { Habit, DailyRecord } from '@/types/habit';
-import {
-  habitStorage,
-  recordStorage,
-  initializeDefaultHabits,
-} from '@/lib/storage';
+import { apiHabitStorage, apiRecordStorage } from '@/lib/api-storage';
+import { habitStorage, initializeDefaultHabits } from '@/lib/storage';
 import { getDailyQuote } from '@/lib/quotes';
 import { CircleProgress } from '@/components/CircleProgress';
 import { HabitCard } from '@/components/HabitCard';
-import { BottomNav } from '@/components/BottomNav';
+import { SideNav } from '@/components/SideNav';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { AddHabitModal } from '@/components/AddHabitModal';
-import { Plus, Flame, Zap } from 'lucide-react';
+import { Flame, Zap } from 'lucide-react';
 
 export default function Dashboard() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [record, setRecord] = useState<DailyRecord | null>(null);
   const [quote, setQuote] = useState<string>('');
   const [streaks, setStreaks] = useState({ current: 0, longest: 0, perfect: 0 });
-  const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
-    initializeDefaultHabits();
-    const allHabits = habitStorage.getHabits();
-    setHabits(allHabits);
-
-    const todayRecord = recordStorage.getOrCreateTodayRecord(allHabits);
-    setRecord(todayRecord);
-    setQuote(getDailyQuote());
-
-    // Calculate streaks
-    const records = recordStorage.getRecords();
-    const sortedRecords = [...records].sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-    );
-
-    let currentStreak = 0;
-    let longestStreak = 0;
-    let tempStreak = 0;
-    let perfectDays = 0;
-
-    for (let i = sortedRecords.length - 1; i >= 0; i--) {
-      if (sortedRecords[i].completionPercentage >= 100) {
-        tempStreak++;
-        perfectDays++;
-        if (i === sortedRecords.length - 1) currentStreak = tempStreak;
-        longestStreak = Math.max(longestStreak, tempStreak);
-      } else {
-        tempStreak = 0;
-      }
-    }
-
-    setStreaks({ current: currentStreak, longest: longestStreak, perfect: perfectDays });
+    loadData();
   }, []);
 
-  const handleToggleHabit = (habitId: string) => {
+  const loadData = async () => {
+    try {
+      const allHabits = await apiHabitStorage.getHabits();
+      if (allHabits.length === 0) {
+        initializeDefaultHabits();
+        const defaultHabits = habitStorage.getHabits();
+        for (const habit of defaultHabits) {
+          await apiHabitStorage.addHabit(habit);
+        }
+        setHabits(defaultHabits);
+      } else {
+        setHabits(allHabits);
+      }
+
+      const todayRecord = await apiRecordStorage.getTodayRecord(allHabits);
+      setRecord(todayRecord);
+      setQuote(getDailyQuote());
+      setStreaks({ current: 0, longest: 0, perfect: 0 });
+    } catch (err) {
+      console.error('Error loading data:', err);
+      const fallbackHabits = habitStorage.getHabits();
+      setHabits(fallbackHabits);
+      setQuote(getDailyQuote());
+    }
+  };
+
+  const handleToggleHabit = async (habitId: string) => {
     if (!record) return;
-    recordStorage.toggleHabit(record.id, habitId);
-    const updatedRecord = recordStorage.getRecordForDate(record.date, habits);
-    setRecord(updatedRecord);
+    try {
+      await apiRecordStorage.toggleHabit(record.id, habitId);
+      const updatedRecord = await apiRecordStorage.getTodayRecord(habits);
+      setRecord(updatedRecord);
+    } catch (err) {
+      console.error('Error toggling habit:', err);
+    }
   };
 
-  const handleAddHabit = (habitData: Omit<Habit, 'id' | 'createdAt' | 'archived'>) => {
-    const newHabit: Habit = {
-      id: `habit_${Date.now()}`,
-      name: habitData.name,
-      icon: habitData.icon,
-      color: habitData.color,
-      notes: habitData.notes,
-      order: habitData.order,
-      archived: false,
-      createdAt: new Date().toISOString(),
-    };
-
-    habitStorage.addHabit(newHabit);
-    const allHabits = habitStorage.getHabits();
-    setHabits(allHabits);
-
-    // Get today's record and sync with new habits
-    const todayRecord = recordStorage.getOrCreateTodayRecord(allHabits);
-    setRecord(todayRecord);
-    setShowAddModal(false);
-  };
 
   const completedCount = record?.habits.filter(h => h.completed).length || 0;
   const totalHabits = habits.filter(h => !h.archived).length;
@@ -162,24 +136,16 @@ export default function Dashboard() {
 
         {/* Habits Section */}
         <div>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-foreground">Today's Habits</h2>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-full p-3 hover:shadow-lg transition-shadow active:scale-95"
-            >
-              <Plus size={20} />
-            </button>
-          </div>
+          <h2 className="text-xl font-bold text-foreground mb-6">Today's Habits</h2>
           {totalHabits === 0 ? (
             <div className="bg-card border border-border rounded-2xl p-8 text-center">
               <p className="text-muted-foreground mb-4">No habits yet</p>
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:shadow-lg transition-shadow"
+              <a
+                href="/habits"
+                className="inline-block bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:shadow-lg transition-shadow"
               >
-                Create Your First Habit
-              </button>
+                Go to Habits to create one
+              </a>
             </div>
           ) : (
             <div className="space-y-4">
@@ -204,13 +170,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <AddHabitModal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onSave={handleAddHabit}
-      />
-
-      <BottomNav />
+      <SideNav />
     </div>
   );
 }

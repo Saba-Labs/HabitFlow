@@ -5,8 +5,6 @@ interface HabitCardProps {
   habit: Habit;
   completion: HabitCompletion;
   onToggle: (habitId: string) => void;
-  onEdit?: (habit: Habit) => void;
-  onDelete?: (habitId: string) => void;
 }
 
 export const HabitCard = ({
