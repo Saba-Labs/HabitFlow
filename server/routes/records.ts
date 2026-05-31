@@ -107,9 +107,9 @@ export const getTodayRecord: RequestHandler = async (req, res) => {
 };
 
 export const toggleHabit: RequestHandler = async (req, res) => {
-  try {
-    const { recordId, habitId } = req.params;
+  const { recordId, habitId } = req.params;
 
+  try {
     const habitResult = await query(
       'SELECT completed FROM habit_completions WHERE record_id = $1 AND habit_id = $2',
       [recordId, habitId]
