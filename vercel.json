@@ -1,12 +1,6 @@
 {
   "buildCommand": "pnpm run build",
   "installCommand": "pnpm install",
-  "framework": "other",
-  "outputDirectory": "dist/spa",
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
+  "framework": "react-router",
+  "outputDirectory": "dist/spa"
 }
