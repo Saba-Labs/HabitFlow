@@ -1,10 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Habit, DailyRecord } from '@/types/habit';
-import {
-  habitStorage,
-  recordStorage,
-  initializeDefaultHabits,
-} from '@/lib/storage';
+import { apiHabitStorage, apiRecordStorage } from '@/lib/api-storage';
+import { habitStorage, initializeDefaultHabits } from '@/lib/storage';
 import { getDailyQuote } from '@/lib/quotes';
 import { CircleProgress } from '@/components/CircleProgress';
 import { HabitCard } from '@/components/HabitCard';
@@ -19,44 +16,44 @@ export default function Dashboard() {
   const [streaks, setStreaks] = useState({ current: 0, longest: 0, perfect: 0 });
 
   useEffect(() => {
-    initializeDefaultHabits();
-    const allHabits = habitStorage.getHabits();
-    setHabits(allHabits);
-
-    const todayRecord = recordStorage.getOrCreateTodayRecord(allHabits);
-    setRecord(todayRecord);
-    setQuote(getDailyQuote());
-
-    // Calculate streaks
-    const records = recordStorage.getRecords();
-    const sortedRecords = [...records].sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-    );
-
-    let currentStreak = 0;
-    let longestStreak = 0;
-    let tempStreak = 0;
-    let perfectDays = 0;
-
-    for (let i = sortedRecords.length - 1; i >= 0; i--) {
-      if (sortedRecords[i].completionPercentage >= 100) {
-        tempStreak++;
-        perfectDays++;
-        if (i === sortedRecords.length - 1) currentStreak = tempStreak;
-        longestStreak = Math.max(longestStreak, tempStreak);
-      } else {
-        tempStreak = 0;
-      }
-    }
-
-    setStreaks({ current: currentStreak, longest: longestStreak, perfect: perfectDays });
+    loadData();
   }, []);
 
-  const handleToggleHabit = (habitId: string) => {
+  const loadData = async () => {
+    try {
+      const allHabits = await apiHabitStorage.getHabits();
+      if (allHabits.length === 0) {
+        initializeDefaultHabits();
+        const defaultHabits = habitStorage.getHabits();
+        for (const habit of defaultHabits) {
+          await apiHabitStorage.addHabit(habit);
+        }
+        setHabits(defaultHabits);
+      } else {
+        setHabits(allHabits);
+      }
+
+      const todayRecord = await apiRecordStorage.getTodayRecord(allHabits);
+      setRecord(todayRecord);
+      setQuote(getDailyQuote());
+      setStreaks({ current: 0, longest: 0, perfect: 0 });
+    } catch (err) {
+      console.error('Error loading data:', err);
+      const fallbackHabits = habitStorage.getHabits();
+      setHabits(fallbackHabits);
+      setQuote(getDailyQuote());
+    }
+  };
+
+  const handleToggleHabit = async (habitId: string) => {
     if (!record) return;
-    recordStorage.toggleHabit(record.id, habitId);
-    const updatedRecord = recordStorage.getRecordForDate(record.date, habits);
-    setRecord(updatedRecord);
+    try {
+      await apiRecordStorage.toggleHabit(record.id, habitId);
+      const updatedRecord = await apiRecordStorage.getTodayRecord(habits);
+      setRecord(updatedRecord);
+    } catch (err) {
+      console.error('Error toggling habit:', err);
+    }
   };
 
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Habit } from '@/types/habit';
-import { habitStorage, initializeDefaultHabits, recordStorage } from '@/lib/storage';
+import { apiHabitStorage } from '@/lib/api-storage';
+import { habitStorage, initializeDefaultHabits } from '@/lib/storage';
 import { AddHabitModal } from '@/components/AddHabitModal';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 
@@ -8,39 +9,64 @@ export default function HabitsPage() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    initializeDefaultHabits();
-    const allHabits = habitStorage.getHabits();
-    setHabits(allHabits.filter(h => !h.archived));
+    loadHabits();
   }, []);
 
-  const handleAddHabit = (habitData: Omit<Habit, 'id' | 'createdAt' | 'archived'>) => {
-    if (editingHabit) {
-      habitStorage.updateHabit(editingHabit.id, {
-        name: habitData.name,
-        icon: habitData.icon,
-        color: habitData.color,
-        notes: habitData.notes,
-      });
-      setEditingHabit(null);
-    } else {
-      const newHabit: Habit = {
-        id: `habit_${Date.now()}`,
-        name: habitData.name,
-        icon: habitData.icon,
-        color: habitData.color,
-        notes: habitData.notes,
-        order: habitData.order,
-        archived: false,
-        createdAt: new Date().toISOString(),
-      };
-      habitStorage.addHabit(newHabit);
+  const loadHabits = async () => {
+    setLoading(true);
+    try {
+      const allHabits = await apiHabitStorage.getHabits();
+      if (allHabits.length === 0) {
+        initializeDefaultHabits();
+        const defaultHabits = habitStorage.getHabits();
+        for (const habit of defaultHabits) {
+          await apiHabitStorage.addHabit(habit);
+        }
+        setHabits(defaultHabits);
+      } else {
+        setHabits(allHabits);
+      }
+    } catch (err) {
+      console.error('Error loading habits:', err);
+      const localHabits = habitStorage.getHabits();
+      setHabits(localHabits.filter(h => !h.archived));
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const allHabits = habitStorage.getHabits();
-    setHabits(allHabits.filter(h => !h.archived));
-    setShowAddModal(false);
+  const handleAddHabit = async (habitData: Omit<Habit, 'id' | 'createdAt' | 'archived'>) => {
+    try {
+      if (editingHabit) {
+        await apiHabitStorage.updateHabit(editingHabit.id, {
+          name: habitData.name,
+          icon: habitData.icon,
+          color: habitData.color,
+          notes: habitData.notes,
+        });
+        setEditingHabit(null);
+      } else {
+        const newHabit: Habit = {
+          id: `habit_${Date.now()}`,
+          name: habitData.name,
+          icon: habitData.icon,
+          color: habitData.color,
+          notes: habitData.notes,
+          order: habitData.order,
+          archived: false,
+          createdAt: new Date().toISOString(),
+        };
+        await apiHabitStorage.addHabit(newHabit);
+      }
+      await loadHabits();
+      setShowAddModal(false);
+    } catch (err) {
+      console.error('Error saving habit:', err);
+      alert('Failed to save habit');
+    }
   };
 
   const handleEditHabit = (habit: Habit) => {
@@ -48,11 +74,26 @@ export default function HabitsPage() {
     setShowAddModal(true);
   };
 
-  const handleDeleteHabit = (habitId: string) => {
-    habitStorage.deleteHabit(habitId);
-    const allHabits = habitStorage.getHabits();
-    setHabits(allHabits.filter(h => !h.archived));
+  const handleDeleteHabit = async (habitId: string) => {
+    try {
+      await apiHabitStorage.deleteHabit(habitId);
+      await loadHabits();
+    } catch (err) {
+      console.error('Error deleting habit:', err);
+      alert('Failed to delete habit');
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen pb-8 bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-primary"></div>
+          <p className="text-muted-foreground mt-4">Loading habits...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-8 bg-background">
