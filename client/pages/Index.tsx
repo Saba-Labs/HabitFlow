@@ -7,13 +7,14 @@ import { CircleProgress } from '@/components/CircleProgress';
 import { HabitCard } from '@/components/HabitCard';
 import { SideNav } from '@/components/SideNav';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Flame, Zap } from 'lucide-react';
+import { Flame, Zap, Menu } from 'lucide-react';
 
 export default function Dashboard() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [record, setRecord] = useState<DailyRecord | null>(null);
   const [quote, setQuote] = useState<string>('');
   const [streaks, setStreaks] = useState({ current: 0, longest: 0, perfect: 0 });
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -65,17 +66,26 @@ export default function Dashboard() {
       {/* Header */}
       <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm border-b border-border">
         <div className="mx-auto px-4 py-6 sm:px-6 flex items-center justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent truncate">
-              HabitFlow
-            </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-              {new Date().toLocaleDateString('en-US', {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </p>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="sm:hidden p-2 hover:bg-muted rounded-lg transition-colors text-foreground"
+              aria-label="Toggle menu"
+            >
+              <Menu size={20} />
+            </button>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent truncate">
+                HabitFlow
+              </h1>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                {new Date().toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <ThemeToggle />
@@ -172,7 +182,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <SideNav />
+      <SideNav isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
     </div>
   );
 }

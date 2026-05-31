@@ -3,9 +3,13 @@ import { Link, useLocation } from 'react-router-dom';
 import { Home, Settings, ListTodo, BarChart3, Trophy, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export const SideNav = () => {
+interface SideNavProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const SideNav = ({ isOpen, onClose }: SideNavProps) => {
   const location = useLocation();
-  const [isOpen, setIsOpen] = useState(false);
 
   const navItems = [
     { path: '/', icon: Home, label: 'Dashboard' },
@@ -30,7 +34,7 @@ export const SideNav = () => {
           <Link
             key={path}
             to={path}
-            onClick={() => setIsOpen(false)}
+            onClick={() => onClose()}
             className={cn(
               'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
               location.pathname === path
@@ -53,20 +57,11 @@ export const SideNav = () => {
 
   return (
     <>
-      {/* Mobile Menu Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-24 right-4 z-50 sm:hidden p-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity shadow-lg"
-        aria-label="Toggle menu"
-      >
-        {isOpen ? <X size={24} /> : <Menu size={24} />}
-      </button>
-
       {/* Mobile Backdrop */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 sm:hidden"
-          onClick={() => setIsOpen(false)}
+          onClick={() => onClose()}
         />
       )}
 
