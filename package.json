@@ -4,9 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run build:client && npm run build:server",
+    "build": "pnpm run build:client && pnpm run build:server",
     "build:client": "vite build",
-    "build:server": "vite build --config vite.config.server.ts",
+    "build:server": "node --import tsx/esm scripts/build-api.ts",
     "start": "node dist/server/node-build.mjs",
     "test": "vitest --run",
     "format.fix": "prettier --write .",
