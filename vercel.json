@@ -2,11 +2,9 @@
   "buildCommand": "pnpm run build",
   "installCommand": "pnpm install",
   "framework": null,
-  "outputDirectory": "dist/spa",
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
+  "functions": {
+    "server/index.ts": {
+      "runtime": "nodejs20.x"
     }
-  ]
+  }
 }
