@@ -154,11 +154,19 @@ export const toggleHabit: RequestHandler = async (req, res) => {
       [recordId, habitId]
     );
 
+    let isCompleted = false;
     if (habitResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Habit completion not found' });
+      // Create missing completion record
+      await query(
+        `INSERT INTO habit_completions (id, record_id, habit_id, completed, created_at)
+         VALUES ($1, $2, $3, FALSE, CURRENT_TIMESTAMP)`,
+        [`completion_${Date.now()}_${habitId}`, recordId, habitId]
+      );
+      isCompleted = false;
+    } else {
+      isCompleted = habitResult.rows[0].completed;
     }
 
-    const isCompleted = habitResult.rows[0].completed;
     const newStatus = !isCompleted;
     const completedAt = newStatus ? new Date().toISOString() : null;
 
