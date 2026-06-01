@@ -4,6 +4,7 @@
   "framework": null,
   "outputDirectory": "dist/spa",
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
