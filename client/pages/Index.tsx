@@ -89,8 +89,13 @@ export default function Dashboard() {
   };
 
 
-  const completedCount = record?.habits.filter(h => h.completed).length || 0;
-  const totalHabits = habits.filter(h => !h.archived).length;
+  const activeHabits = habits.filter(h => !h.archived);
+  const completedCount = record?.habits.filter(h => {
+    const habit = activeHabits.find(ah => ah.id === h.habitId);
+    return habit && h.completed;
+  }).length || 0;
+  const totalHabits = activeHabits.length;
+  const completionPercentage = totalHabits > 0 ? Math.round((completedCount / totalHabits) * 100) : 0;
 
   return (
     <div className="min-h-screen pb-24 bg-background">
@@ -144,7 +149,7 @@ export default function Dashboard() {
         {/* Progress Card */}
         <div className="bg-gradient-to-br from-primary/15 via-secondary/15 to-accent/15 rounded-3xl p-8 border border-primary/30">
           <div className="flex flex-col items-center gap-6">
-            <CircleProgress percentage={record?.completionPercentage || 0} />
+            <CircleProgress percentage={completionPercentage} />
             <div className="text-center">
               <p className="text-muted-foreground text-sm mb-2">{isToday ? "Today's Score" : "Completion Score"}</p>
               <p className="text-lg font-semibold text-foreground">
