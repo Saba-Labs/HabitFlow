@@ -52,7 +52,7 @@ const ProtectedLayout = ({ component: Component }: { component: React.ComponentT
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
 
   return (

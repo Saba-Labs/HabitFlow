@@ -10,12 +10,10 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('authToken'));
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const savedToken = localStorage.getItem('authToken');
-    setToken(savedToken);
     setLoading(false);
 
     const handleStorageChange = (e: StorageEvent) => {
