@@ -4,7 +4,7 @@ import cors from "cors";
 import path from "path";
 import { handleDemo } from "./routes/demo";
 import { getHabits, addHabit, updateHabit, deleteHabit } from "./routes/habits";
-import { getTodayRecord, toggleHabit } from "./routes/records";
+import { getTodayRecord, toggleHabit, getRecordByDate } from "./routes/records";
 import { signup, login } from "./routes/auth";
 import { initDb } from "./db";
 import { authMiddleware } from "./auth";
@@ -56,6 +56,7 @@ export async function createServer() {
 
   // Records routes
   app.get("/api/records/today", getTodayRecord);
+  app.get("/api/records/date/:date", getRecordByDate);
   app.put("/api/records/:recordId/habits/:habitId", toggleHabit);
 
   // SPA fallback - handled by Vite in development, by static files in production

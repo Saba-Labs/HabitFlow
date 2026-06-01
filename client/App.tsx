@@ -36,7 +36,7 @@ const InitTheme = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const ProtectedLayout = ({ component }: { component: React.ReactNode }) => {
+const ProtectedLayout = ({ component: Component }: { component: React.ComponentType }) => {
   const { isAuthenticated, loading } = useAuth();
   const { mobileMenuOpen, setMobileMenuOpen } = useMobileMenu();
 
@@ -52,13 +52,13 @@ const ProtectedLayout = ({ component }: { component: React.ReactNode }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
 
   return (
     <>
       <SideNav isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
-      {component}
+      <Component />
     </>
   );
 };
@@ -67,12 +67,12 @@ const AppContent = () => {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path="/" element={<ProtectedLayout component={<Index />} />} />
-      <Route path="/habits" element={<ProtectedLayout component={<Habits />} />} />
-      <Route path="/calendar" element={<ProtectedLayout component={<Calendar />} />} />
-      <Route path="/reports" element={<ProtectedLayout component={<Reports />} />} />
-      <Route path="/achievements" element={<ProtectedLayout component={<Achievements />} />} />
-      <Route path="/settings" element={<ProtectedLayout component={<Settings />} />} />
+      <Route path="/" element={<ProtectedLayout component={Index} />} />
+      <Route path="/habits" element={<ProtectedLayout component={Habits} />} />
+      <Route path="/calendar" element={<ProtectedLayout component={Calendar} />} />
+      <Route path="/reports" element={<ProtectedLayout component={Reports} />} />
+      <Route path="/achievements" element={<ProtectedLayout component={Achievements} />} />
+      <Route path="/settings" element={<ProtectedLayout component={Settings} />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

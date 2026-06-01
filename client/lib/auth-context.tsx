@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -10,12 +10,10 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('authToken'));
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const savedToken = localStorage.getItem('authToken');
-    setToken(savedToken);
     setLoading(false);
 
     const handleStorageChange = (e: StorageEvent) => {
@@ -28,13 +26,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('authToken');
     setToken(null);
-  };
+  }, []);
+
+  const value = useMemo(() => ({ isAuthenticated: !!token, token, logout, loading }), [token, loading, logout]);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated: !!token, token, logout, loading }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
