@@ -1,6 +1,8 @@
 [build]
   command = "npm run build:client"
   publish = "dist/spa"
+  # Use npm (package-lock.json); avoids frozen pnpm-lock mismatch on CI
+  installCommand = "npm ci"
 
 [functions]
   directory = "netlify/functions"
