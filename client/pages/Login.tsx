@@ -60,8 +60,9 @@ export default function Login() {
 
       if (!response.ok) {
         const error = await response.json();
+        const errorMessage = typeof error.error === 'string' ? error.error : 'Authentication failed';
         console.error('[Login] API error', { error, status: response.status });
-        toast.error(error.error || 'Authentication failed');
+        toast.error(errorMessage);
         return;
       }
 

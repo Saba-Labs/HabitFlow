@@ -11,11 +11,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('authToken'));
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
 
   useEffect(() => {
-    setLoading(false);
-
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'authToken') {
         setToken(e.newValue);
@@ -31,7 +29,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setToken(null);
   }, []);
 
-  const value = useMemo(() => ({ isAuthenticated: !!token, token, logout, loading }), [token, loading, logout]);
+  const value = useMemo(() => ({ isAuthenticated: !!token, token, logout, loading }), [token, logout]);
 
   return (
     <AuthContext.Provider value={value}>
