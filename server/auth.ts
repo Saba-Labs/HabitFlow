@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { Request, Response, NextFunction } from 'express';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || process.env.VITE_JWT_SECRET || 'dev-secret-key-change-in-production';
 
 export interface AuthPayload {
   userId: string;

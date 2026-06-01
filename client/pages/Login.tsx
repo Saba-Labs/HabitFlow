@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
+import { setAuthToken } from '@/lib/auth-context';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -60,14 +61,15 @@ export default function Login() {
 
       if (!response.ok) {
         const error = await response.json();
+        const errorMessage = typeof error.error === 'string' ? error.error : 'Authentication failed';
         console.error('[Login] API error', { error, status: response.status });
-        toast.error(error.error || 'Authentication failed');
+        toast.error(errorMessage);
         return;
       }
 
       const { token } = await response.json();
       console.log('[Login] Authentication successful, token received');
-      localStorage.setItem('authToken', token);
+      setAuthToken(token);
       toast.success(isSignup ? 'Signed up successfully!' : 'Logged in successfully!');
       console.log('[Login] Navigating to home page');
       navigate('/');

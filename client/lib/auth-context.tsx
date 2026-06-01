@@ -9,12 +9,26 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Custom event for auth token changes
+const authTokenChangeEvent = new Event('authTokenChange');
+
+export const setAuthToken = (token: string | null) => {
+  if (token) {
+    localStorage.setItem('authToken', token);
+  } else {
+    localStorage.removeItem('authToken');
+  }
+  window.dispatchEvent(authTokenChangeEvent);
+};
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('authToken'));
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
 
   useEffect(() => {
-    setLoading(false);
+    const handleAuthChange = () => {
+      setToken(localStorage.getItem('authToken'));
+    };
 
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'authToken') {
@@ -22,16 +36,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
+    window.addEventListener('authTokenChange', handleAuthChange);
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('authTokenChange', handleAuthChange);
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem('authToken');
-    setToken(null);
+    setAuthToken(null);
   }, []);
 
-  const value = useMemo(() => ({ isAuthenticated: !!token, token, logout, loading }), [token, loading, logout]);
+  const value = useMemo(() => ({ isAuthenticated: !!token, token, logout, loading }), [token, logout]);
 
   return (
     <AuthContext.Provider value={value}>

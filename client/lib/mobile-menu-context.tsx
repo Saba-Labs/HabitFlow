@@ -9,7 +9,7 @@ const MobileMenuContext = createContext<MobileMenuContextType | undefined>(undef
 
 export const MobileMenuProvider = ({ children }: { children: React.ReactNode }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const value = useMemo(() => ({ mobileMenuOpen, setMobileMenuOpen }), [mobileMenuOpen]);
+  const value = useMemo(() => ({ mobileMenuOpen, setMobileMenuOpen }), [mobileMenuOpen, setMobileMenuOpen]);
 
   return (
     <MobileMenuContext.Provider value={value}>
