@@ -18,7 +18,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       app.use(express.json());
       app.use(express.urlencoded({ extended: true }));
 
-      const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-key";
+      const JWT_SECRET = process.env.JWT_SECRET || process.env.VITE_JWT_SECRET || "dev-secret-key-change-in-production";
 
       // ─── DB ────────────────────────────────────────────────────────────────
       const sql = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : null;
@@ -90,7 +90,8 @@ export default async (req: VercelRequest, res: VercelResponse) => {
           if (!token) return res.status(401).json({ error: "No token provided" });
           req.user = jwt.verify(token, JWT_SECRET);
           next();
-        } catch {
+        } catch (err) {
+          console.error("[Auth] Token validation failed:", err instanceof Error ? err.message : String(err));
           res.status(401).json({ error: "Invalid token" });
         }
       };
