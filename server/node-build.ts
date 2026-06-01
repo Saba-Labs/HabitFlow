@@ -2,6 +2,9 @@ import path from "node:path";
 import { createServer } from "./index";
 import * as express from "express";
 
+// Export createServer for Vercel serverless functions
+export { createServer };
+
 async function start() {
   try {
     const app = await createServer();
