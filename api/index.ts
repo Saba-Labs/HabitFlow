@@ -1,5 +1,5 @@
-// api/index.ts
 import { VercelRequest, VercelResponse } from "@vercel/node";
+import { createServer } from "./server-bundle.mjs";
 import serverless from "serverless-http";
 
 let handler: ReturnType<typeof serverless>;
@@ -7,8 +7,6 @@ let handler: ReturnType<typeof serverless>;
 export default async (req: VercelRequest, res: VercelResponse) => {
   try {
     if (!handler) {
-      // Dynamically import the pre-built bundle
-      const { createServer } = await import("../dist/server/node-build.mjs");
       const app = await createServer();
       handler = serverless(app);
     }
