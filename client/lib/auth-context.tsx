@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -33,8 +33,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setToken(null);
   };
 
+  const value = useMemo(() => ({ isAuthenticated: !!token, token, logout, loading }), [token, loading]);
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated: !!token, token, logout, loading }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
