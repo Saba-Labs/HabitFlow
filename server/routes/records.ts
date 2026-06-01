@@ -56,8 +56,7 @@ export const getTodayRecord: RequestHandler = async (req, res) => {
       }
     }
 
-    const recordId = `record_${today}_${userId}`;
-
+    // First try to get existing record by user_id and date
     let result = await query(
       `SELECT dr.*,
               COALESCE(
@@ -67,11 +66,12 @@ export const getTodayRecord: RequestHandler = async (req, res) => {
                 '[]'::json
               ) as habits
        FROM daily_records dr
-       WHERE dr.id = $1`,
-      [recordId]
+       WHERE dr.user_id = $1 AND dr.date = $2`,
+      [userId, today]
     );
 
     if (result.rows.length === 0) {
+      const recordId = `record_${today}_${userId}`;
       const habitResult = await query(
         'SELECT id FROM habits WHERE user_id = $1 AND archived = FALSE',
         [userId]
@@ -100,8 +100,8 @@ export const getTodayRecord: RequestHandler = async (req, res) => {
                   '[]'::json
                 ) as habits
          FROM daily_records dr
-         WHERE dr.id = $1`,
-        [recordId]
+         WHERE dr.user_id = $1 AND dr.date = $2`,
+        [userId, today]
       );
     }
 
