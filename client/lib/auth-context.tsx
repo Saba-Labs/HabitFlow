@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -28,12 +28,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('authToken');
     setToken(null);
-  };
+  }, []);
 
-  const value = useMemo(() => ({ isAuthenticated: !!token, token, logout, loading }), [token, loading]);
+  const value = useMemo(() => ({ isAuthenticated: !!token, token, logout, loading }), [token, loading, logout]);
 
   return (
     <AuthContext.Provider value={value}>
