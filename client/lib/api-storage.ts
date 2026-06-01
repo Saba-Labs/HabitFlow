@@ -13,22 +13,30 @@ async function fetchApi<T>(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`/api${endpoint}`, {
-    headers,
-    ...options,
-  });
+  try {
+    const response = await fetch(`/api${endpoint}`, {
+      headers,
+      ...options,
+    });
 
-  if (!response.ok) {
-    if (response.status === 401) {
-      localStorage.removeItem('authToken');
-      window.location.href = '/login';
-      throw new Error('Session expired. Please login again.');
+    if (!response.ok) {
+      if (response.status === 401) {
+        localStorage.removeItem('authToken');
+        window.location.href = '/login';
+        throw new Error('Session expired. Please login again.');
+      }
+      const errorText = await response.text();
+      throw new Error(`API error: ${response.status} - ${errorText || response.statusText}`);
     }
-    const errorText = await response.text();
-    throw new Error(`API error: ${response.status} - ${errorText || response.statusText}`);
-  }
 
-  return response.json();
+    return response.json();
+  } catch (err) {
+    if (err instanceof TypeError && err.message.includes('Failed to fetch')) {
+      console.error('Network error - unable to reach API server:', err);
+      throw new Error('Network error: unable to reach server');
+    }
+    throw err;
+  }
 }
 
 export const apiHabitStorage = {
@@ -36,6 +44,9 @@ export const apiHabitStorage = {
     try {
       return await fetchApi<Habit[]>('/habits');
     } catch (err) {
+      if (err instanceof Error && err.message.includes('Session expired')) {
+        throw err;
+      }
       console.error('Failed to fetch habits:', err);
       return [];
     }
