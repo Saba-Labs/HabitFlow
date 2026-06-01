@@ -1,21 +1,15 @@
 {
-  "buildCommand": "pnpm run build:client",
+  "buildCommand": "pnpm run build:client && pnpm run build:server",
   "installCommand": "pnpm install",
   "framework": null,
   "outputDirectory": "dist/spa",
   "functions": {
     "api/index.ts": {
-      "includeFiles": "server/**"
+      "includeFiles": "dist/server/**"
     }
   },
   "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/api/(.*)", "destination": "/api" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
