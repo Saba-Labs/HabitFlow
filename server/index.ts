@@ -76,14 +76,8 @@ export async function createServer() {
   app.get("/api/records/date/:date", getRecordByDate);
   app.put("/api/records/:recordId/habits/:habitId", toggleHabit);
 
-  // SPA fallback - handled by Vite in development, by static files in production
-  if (process.env.NODE_ENV === "production") {
-    app.get("*", (req, res) => {
-      const filePath = path.join(__dirname, "../spa/index.html");
-      console.log("[Server] SPA fallback for", req.path, "serving", filePath);
-      res.sendFile(filePath);
-    });
-  }
+  // SPA fallback - handled by Vite in development, by vercel.json filesystem handler in production
+  // Do NOT add a catch-all route here on Vercel, it breaks the routing
 
   console.log("[Server] Server created successfully", {
     nodeEnv: process.env.NODE_ENV,
