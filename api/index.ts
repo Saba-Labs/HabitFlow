@@ -1,8 +1,8 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
-import { createServer } from "../dist/server/node-build.mjs";
+import { createServer } from "../server/index";
 import serverless from "serverless-http";
 
-let handler: any;
+let handler: ReturnType<typeof serverless>;
 
 export default async (req: VercelRequest, res: VercelResponse) => {
   try {
