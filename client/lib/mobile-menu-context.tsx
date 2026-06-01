@@ -1,27 +1,26 @@
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 
 interface MobileMenuContextType {
   mobileMenuOpen: boolean;
-  setMobileMenuOpen: (value: boolean) => void;
+  setMobileMenuOpen: (open: boolean) => void;
 }
 
 const MobileMenuContext = createContext<MobileMenuContextType | undefined>(undefined);
 
-export const MobileMenuProvider = ({ children }: { children: React.ReactNode }) => {
+export function MobileMenuProvider({ children }: { children: ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const value = useMemo(() => ({ mobileMenuOpen, setMobileMenuOpen }), [mobileMenuOpen, setMobileMenuOpen]);
 
   return (
-    <MobileMenuContext.Provider value={value}>
+    <MobileMenuContext.Provider value={{ mobileMenuOpen, setMobileMenuOpen }}>
       {children}
     </MobileMenuContext.Provider>
   );
-};
+}
 
-export const useMobileMenu = () => {
+export function useMobileMenu() {
   const context = useContext(MobileMenuContext);
   if (!context) {
     throw new Error('useMobileMenu must be used within MobileMenuProvider');
   }
   return context;
-};
+}

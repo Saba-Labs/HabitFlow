@@ -1,66 +1,43 @@
-import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
+import { createContext, useContext, ReactNode } from 'react';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  token: string | null;
   logout: () => void;
-  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Custom event for auth token changes
-const authTokenChangeEvent = new Event('authTokenChange');
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const isAuthenticated = !!localStorage.getItem('authToken');
 
-export const setAuthToken = (token: string | null) => {
-  if (token) {
-    localStorage.setItem('authToken', token);
-  } else {
+  const logout = () => {
     localStorage.removeItem('authToken');
-  }
-  window.dispatchEvent(authTokenChangeEvent);
-};
-
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('authToken'));
-  const [loading] = useState(false);
-
-  useEffect(() => {
-    const handleAuthChange = () => {
-      setToken(localStorage.getItem('authToken'));
-    };
-
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'authToken') {
-        setToken(e.newValue);
-      }
-    };
-
-    window.addEventListener('authTokenChange', handleAuthChange);
-    window.addEventListener('storage', handleStorageChange);
-    return () => {
-      window.removeEventListener('authTokenChange', handleAuthChange);
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
-
-  const logout = useCallback(() => {
-    setAuthToken(null);
-  }, []);
-
-  const value = useMemo(() => ({ isAuthenticated: !!token, token, logout, loading }), [token, logout]);
+    window.location.href = '/login';
+  };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ isAuthenticated, logout }}>
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => {
+export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within AuthProvider');
   }
   return context;
-};
+}
+
+export function setAuthToken(token: string): void {
+  localStorage.setItem('authToken', token);
+}
+
+export function getAuthToken(): string | null {
+  return localStorage.getItem('authToken');
+}
+
+export function clearAuthToken(): void {
+  localStorage.removeItem('authToken');
+}
