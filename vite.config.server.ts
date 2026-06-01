@@ -1,11 +1,11 @@
+// vite.config.server.ts
 import { defineConfig } from "vite";
 import path from "node:path";
 
-// Server build configuration
 export default defineConfig({
   build: {
     lib: {
-      entry: path.resolve(__dirname, "server/node-build.ts"),
+      entry: path.resolve(__dirname, "server/index.ts"),  // ← point to index.ts directly
       name: "server",
       fileName: "node-build",
       formats: ["es"],
@@ -15,30 +15,19 @@ export default defineConfig({
     ssr: true,
     rollupOptions: {
       external: [
-        // Node.js built-ins
-        "fs",
-        "path",
-        "url",
-        "http",
-        "https",
-        "os",
-        "crypto",
-        "stream",
-        "util",
-        "events",
-        "buffer",
-        "querystring",
-        "child_process",
-        // External dependencies that should not be bundled
-        "express",
-        "cors",
+        // Node built-ins ONLY — everything else gets bundled
+        /^node:/,
+        "fs", "path", "url", "http", "https", "os",
+        "crypto", "stream", "util", "events", "buffer",
+        "querystring", "child_process",
+        // ❌ Do NOT list express, cors, pg, bcryptjs etc here
       ],
       output: {
         format: "es",
         entryFileNames: "[name].mjs",
       },
     },
-    minify: false, // Keep readable for debugging
+    minify: false,
     sourcemap: true,
   },
   resolve: {
