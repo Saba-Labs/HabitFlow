@@ -1,5 +1,5 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
-import { createServer } from "../server/index";
+import { createServer } from "../dist/server/production.mjs";
 import serverless from "serverless-http";
 
 let handler: any;
