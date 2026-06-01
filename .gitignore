@@ -27,5 +27,5 @@ dist-ssr
 !.env
 
 # Build artifacts
-api/server-bundle.mjs
+
 api/server-bundle.mjs.map
