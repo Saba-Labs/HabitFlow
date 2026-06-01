@@ -39,7 +39,7 @@ export const getTodayRecord: RequestHandler = async (req, res) => {
           }
         }
         const completions = memoryStore.getCompletions(record.id);
-        console.log(`Returning record with ${completions.length} completions`);
+        console.log(`Returning record ${record.id} with ${completions.length} completions`);
         return res.json({
           id: record.id,
           date: record.date,
@@ -56,6 +56,8 @@ export const getTodayRecord: RequestHandler = async (req, res) => {
       }
     }
 
+    const recordId = `record_${today}_${userId}`;
+
     let result = await query(
       `SELECT dr.*,
               COALESCE(
@@ -65,12 +67,11 @@ export const getTodayRecord: RequestHandler = async (req, res) => {
                 '[]'::json
               ) as habits
        FROM daily_records dr
-       WHERE dr.user_id = $1 AND dr.date = $2`,
-      [userId, today]
+       WHERE dr.id = $1`,
+      [recordId]
     );
 
     if (result.rows.length === 0) {
-      const recordId = `record_${today}`;
       const habitResult = await query(
         'SELECT id FROM habits WHERE user_id = $1 AND archived = FALSE',
         [userId]
