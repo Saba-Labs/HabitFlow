@@ -93,6 +93,21 @@ export const apiRecordStorage = {
     }
   },
 
+  getRecordByDate: async (date: string, habits: Habit[]): Promise<DailyRecord> => {
+    try {
+      const record = await fetchApi<DailyRecord>(`/records/date/${date}`);
+      return record;
+    } catch (err) {
+      console.error('Failed to fetch record for date:', err);
+      return {
+        id: `record_${date}`,
+        date,
+        habits: habits.map(h => ({ habitId: h.id, completed: false })),
+        completionPercentage: 0,
+      };
+    }
+  },
+
   toggleHabit: async (recordId: string, habitId: string): Promise<void> => {
     await fetchApi(`/records/${recordId}/habits/${habitId}`, {
       method: 'PUT',

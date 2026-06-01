@@ -6,7 +6,7 @@ import { getDailyQuote } from '@/lib/quotes';
 import { CircleProgress } from '@/components/CircleProgress';
 import { HabitCard } from '@/components/HabitCard';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Flame, Zap, Menu } from 'lucide-react';
+import { Flame, Zap, Menu, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useMobileMenu } from '@/lib/mobile-menu-context';
 
 export default function Dashboard() {
@@ -15,10 +15,15 @@ export default function Dashboard() {
   const [record, setRecord] = useState<DailyRecord | null>(null);
   const [quote, setQuote] = useState<string>('');
   const [streaks, setStreaks] = useState({ current: 0, longest: 0, perfect: 0 });
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    loadRecordForDate(selectedDate);
+  }, [selectedDate, habits]);
 
   const loadData = async () => {
     try {
@@ -30,14 +35,6 @@ export default function Dashboard() {
       }
 
       setHabits(allHabits);
-
-      try {
-        const todayRecord = await apiRecordStorage.getTodayRecord(allHabits);
-        setRecord(todayRecord);
-      } catch (err) {
-        console.warn('Failed to fetch today record from API:', err);
-      }
-
       setQuote(getDailyQuote());
       setStreaks({ current: 0, longest: 0, perfect: 0 });
     } catch (err) {
@@ -47,6 +44,38 @@ export default function Dashboard() {
       setQuote(getDailyQuote());
     }
   };
+
+  const loadRecordForDate = async (date: string) => {
+    try {
+      if (date === new Date().toISOString().split('T')[0]) {
+        const todayRecord = await apiRecordStorage.getTodayRecord(habits);
+        setRecord(todayRecord);
+      } else {
+        const record = await apiRecordStorage.getRecordByDate(date, habits);
+        setRecord(record);
+      }
+    } catch (err) {
+      console.warn('Failed to fetch record:', err);
+    }
+  };
+
+  const handlePreviousDay = () => {
+    const date = new Date(selectedDate);
+    date.setDate(date.getDate() - 1);
+    setSelectedDate(date.toISOString().split('T')[0]);
+  };
+
+  const handleNextDay = () => {
+    const date = new Date(selectedDate);
+    date.setDate(date.getDate() + 1);
+    const today = new Date().toISOString().split('T')[0];
+    if (date.toISOString().split('T')[0] <= today) {
+      setSelectedDate(date.toISOString().split('T')[0]);
+    }
+  };
+
+  const isToday = selectedDate === new Date().toISOString().split('T')[0];
+  const isFuture = selectedDate > new Date().toISOString().split('T')[0];
 
   const handleToggleHabit = async (habitId: string) => {
     if (!record) return;
@@ -68,10 +97,10 @@ export default function Dashboard() {
       {/* Header */}
       <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm border-b border-border">
         <div className="mx-auto px-4 py-6 sm:px-6 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="sm:hidden p-2 hover:bg-muted rounded-lg transition-colors text-foreground"
+              className="sm:hidden p-2 hover:bg-muted rounded-lg transition-colors text-foreground flex-shrink-0"
               aria-label="Toggle menu"
             >
               <Menu size={20} />
@@ -81,15 +110,31 @@ export default function Dashboard() {
                 HabitFlow
               </h1>
               <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                {new Date().toLocaleDateString('en-US', {
+                {new Date(selectedDate).toLocaleDateString('en-US', {
                   weekday: 'long',
                   month: 'long',
                   day: 'numeric',
                 })}
+                {isToday && ' (Today)'}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={handlePreviousDay}
+              className="p-2 hover:bg-muted rounded-lg transition-colors text-foreground"
+              aria-label="Previous day"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <button
+              onClick={handleNextDay}
+              disabled={isFuture}
+              className="p-2 hover:bg-muted rounded-lg transition-colors text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Next day"
+            >
+              <ChevronRight size={20} />
+            </button>
             <ThemeToggle />
           </div>
         </div>
@@ -101,7 +146,7 @@ export default function Dashboard() {
           <div className="flex flex-col items-center gap-6">
             <CircleProgress percentage={record?.completionPercentage || 0} />
             <div className="text-center">
-              <p className="text-muted-foreground text-sm mb-2">Today's Score</p>
+              <p className="text-muted-foreground text-sm mb-2">{isToday ? "Today's Score" : "Completion Score"}</p>
               <p className="text-lg font-semibold text-foreground">
                 {completedCount} of {totalHabits} habits completed
               </p>
@@ -150,7 +195,7 @@ export default function Dashboard() {
 
         {/* Habits Section */}
         <div>
-          <h2 className="text-xl font-bold text-foreground mb-6">Today's Habits</h2>
+          <h2 className="text-xl font-bold text-foreground mb-6">{isToday ? "Today's Habits" : "Habits for " + new Date(selectedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</h2>
           {totalHabits === 0 ? (
             <div className="bg-card border border-border rounded-2xl p-8 text-center">
               <p className="text-muted-foreground mb-4">No habits yet</p>
