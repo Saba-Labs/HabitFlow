@@ -29,11 +29,20 @@ export async function createServer() {
     next();
   });
 
-  // Initialize database
+  // Initialize database (timeout so dev server still starts if DB is unreachable)
   if (process.env.DATABASE_URL) {
     try {
       console.log("[Server] Initializing database...");
-      await initDb();
+      const timeoutMs = Number(process.env.DB_INIT_TIMEOUT_MS) || 10_000;
+      await Promise.race([
+        initDb(),
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () => reject(new Error(`Database init timed out after ${timeoutMs}ms`)),
+            timeoutMs,
+          ),
+        ),
+      ]);
       console.log("[Server] Database initialized successfully");
     } catch (err) {
       console.error("[Server] Failed to initialize database:", err);

@@ -5,7 +5,7 @@ import path from "node:path";
 export default defineConfig({
   build: {
     lib: {
-      entry: path.resolve(__dirname, "server/index.ts"),  // ← point to index.ts directly
+      entry: path.resolve(__dirname, "server/node-build.ts"),
       name: "server",
       fileName: "node-build",
       formats: ["es"],

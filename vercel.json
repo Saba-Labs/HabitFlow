@@ -1,10 +1,13 @@
 {
-  "buildCommand": "pnpm run build:client",
-  "installCommand": "pnpm install --no-frozen-lockfile",
-  "framework": null,
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build:client",
   "outputDirectory": "dist/spa",
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/index.ts" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "framework": null,
+  "rewrites": [
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
   ]
 }

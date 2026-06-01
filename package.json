@@ -4,13 +4,17 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "pnpm run build:client && pnpm run build:server",
+    "build": "npm run build:client && npm run build:server",
     "build:client": "vite build",
-    "build:server": "tsx scripts/build-api.ts",
+    "build:server": "vite build --config vite.config.server.ts",
     "start": "node dist/server/node-build.mjs",
+    "preview": "npm run build && npm run start",
     "test": "vitest --run",
     "format.fix": "prettier --write .",
     "typecheck": "tsc"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",

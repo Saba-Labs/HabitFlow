@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { defineConfig, Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "node:path";
@@ -6,11 +7,12 @@ import { createServer } from "./server";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "::",
+    host: true,
     port: 8080,
+    strictPort: false,
     fs: {
-      allow: ["./client", "./shared", "index.html"],
-      deny: [".env", ".env.*", "*.{crt,pem}", "**/.git/**", "server/**"],
+      allow: [".", "./client", "./shared"],
+      deny: [".env", ".env.*", "*.{crt,pem}", "**/.git/**"],
     },
   },
   build: {
@@ -32,8 +34,14 @@ function expressPlugin(): Plugin {
     async configureServer(server) {
       const app = await createServer();
 
-      // Add Express app as middleware to Vite dev server
-      server.middlewares.use(app);
+      // Only mount Express for API routes so Vite serves the SPA
+      server.middlewares.use((req, res, next) => {
+        const url = req.url ?? "";
+        if (url.startsWith("/api")) {
+          return (app as any)(req, res, next);
+        }
+        next();
+      });
     },
   };
 }
