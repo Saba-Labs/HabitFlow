@@ -1,4 +1,5 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
+// Import from the pre-built bundle that lives in the same /api folder
 import { createServer } from "./server-bundle.mjs";
 import serverless from "serverless-http";
 
@@ -15,7 +16,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
     console.error("API Error:", error);
     res.status(500).json({
       error: "Internal Server Error",
-      message: error instanceof Error ? error.message : "Unknown error",
+      message: error instanceof Error ? error.message : String(error),
     });
   }
 };
