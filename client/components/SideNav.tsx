@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Home, Settings, ListTodo, BarChart3, Trophy, Menu, X } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Home, Settings, ListTodo, BarChart3, Trophy, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/lib/auth-context';
 
 interface SideNavProps {
   isOpen: boolean;
@@ -10,6 +11,14 @@ interface SideNavProps {
 
 export const SideNav = ({ isOpen, onClose }: SideNavProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    onClose();
+    navigate('/login');
+  };
 
   const navItems = [
     { path: '/', icon: Home, label: 'Dashboard' },
@@ -49,8 +58,15 @@ export const SideNav = ({ isOpen, onClose }: SideNavProps) => {
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t border-border text-xs text-muted-foreground text-center">
-        <p>HabitFlow © 2026</p>
+      <div className="p-4 border-t border-border space-y-4">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors font-medium"
+        >
+          <LogOut size={20} />
+          <span>Logout</span>
+        </button>
+        <p className="text-xs text-muted-foreground text-center">HabitFlow © 2026</p>
       </div>
     </>
   );
