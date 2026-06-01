@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
-import { setAuthToken } from '@/lib/auth-context';
+import { useAuth } from '@/lib/auth-context';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -16,13 +16,13 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
+  const { isAuthenticated, loading: authLoading, login } = useAuth();
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      navigate('/');
+    if (!authLoading && isAuthenticated) {
+      navigate('/', { replace: true });
     }
-  }, [navigate]);
+  }, [authLoading, isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,10 +69,8 @@ export default function Login() {
 
       const { token } = await response.json();
       console.log('[Login] Authentication successful, token received');
-      setAuthToken(token);
+      login(token);
       toast.success(isSignup ? 'Signed up successfully!' : 'Logged in successfully!');
-      console.log('[Login] Navigating to home page');
-      navigate('/');
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
       console.error('[Login] Error during authentication', {
@@ -93,6 +91,14 @@ export default function Login() {
     setShowPassword(false);
     setShowConfirmPassword(false);
   };
+
+  if (authLoading || isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-4">

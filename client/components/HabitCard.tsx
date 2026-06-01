@@ -1,50 +1,74 @@
+import { motion, AnimatePresence } from 'framer-motion';
 import { Habit, HabitCompletion } from '@/types/habit';
-import { CheckCircle2, Circle } from 'lucide-react';
+import { HabitToggle } from '@/components/HabitToggle';
+import { cn } from '@/lib/utils';
 
 interface HabitCardProps {
   habit: Habit;
   completion: HabitCompletion;
   onToggle: (habitId: string) => void;
+  pending?: boolean;
 }
 
 export const HabitCard = ({
   habit,
   completion,
   onToggle,
+  pending = false,
 }: HabitCardProps) => {
+  const completed = completion.completed;
+
   return (
-    <div className={`bg-card border rounded-2xl p-5 flex items-center gap-4 transition-all hover:shadow-lg ${
-      completion.completed
-        ? 'border-primary/50 bg-gradient-to-r from-primary/5 to-secondary/5'
-        : 'border-border'
-    }`}>
-      <div className="text-4xl">{habit.icon}</div>
-      <div className="flex-1">
-        <h3 className={`font-semibold text-lg ${completion.completed ? 'text-primary' : 'text-foreground'}`}>
+    <motion.div
+      layout
+      initial={false}
+      transition={{ layout: { duration: 0.25, ease: [0.4, 0, 0.2, 1] } }}
+      className={cn(
+        'bg-card border border-border rounded-xl p-4 flex items-center gap-4',
+        'hover:border-foreground/15 transition-colors duration-200',
+        completed && 'bg-muted/30',
+      )}
+    >
+      <span className="text-3xl select-none leading-none" aria-hidden>
+        {habit.icon}
+      </span>
+
+      <div className="flex-1 min-w-0">
+        <h3
+          className={cn(
+            'font-medium text-base truncate text-foreground',
+            completed && 'text-muted-foreground line-through decoration-border',
+          )}
+        >
           {habit.name}
         </h3>
         {habit.notes && (
-          <p className="text-sm text-muted-foreground">{habit.notes}</p>
+          <p className="text-sm text-muted-foreground truncate mt-0.5">{habit.notes}</p>
         )}
-        {completion.completedAt && (
-          <p className="text-xs text-muted-foreground mt-1">
-            ✓ Completed at {new Date(completion.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </p>
-        )}
+        <AnimatePresence mode="wait">
+          {completion.completedAt && (
+            <motion.p
+              key={completion.completedAt}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.18 }}
+              className="text-xs text-muted-foreground mt-1"
+            >
+              {new Date(completion.completedAt).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </motion.p>
+          )}
+        </AnimatePresence>
       </div>
-      <button
-        onClick={() => onToggle(habit.id)}
-        className="transition-transform hover:scale-110 active:scale-95"
-      >
-        {completion.completed ? (
-          <CheckCircle2
-            size={32}
-            className="text-primary fill-primary"
-          />
-        ) : (
-          <Circle size={32} className="text-muted-foreground hover:text-primary" />
-        )}
-      </button>
-    </div>
+
+      <HabitToggle
+        completed={completed}
+        onToggle={() => onToggle(habit.id)}
+        pending={pending}
+      />
+    </motion.div>
   );
 };
