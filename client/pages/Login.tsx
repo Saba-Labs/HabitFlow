@@ -109,7 +109,7 @@ export default function Login() {
           </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} action="#" method="post" className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-semibold text-foreground">Email Address</label>
               <Input
