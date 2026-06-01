@@ -160,7 +160,7 @@ export default function Dashboard() {
               <Menu size={20} />
             </button>
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground truncate">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent truncate">
                 HabitFlow
               </h1>
               <p className="text-xs sm:text-sm text-muted-foreground mt-1">
@@ -196,7 +196,7 @@ export default function Dashboard() {
 
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-8">
         {/* Progress Card */}
-        <div className="bg-card rounded-2xl p-8 border border-border">
+        <div className="bg-gradient-to-br from-primary/15 via-secondary/15 to-accent/15 rounded-3xl p-8 border border-primary/30">
           <div className="flex flex-col items-center gap-6">
             <CircleProgress percentage={completionPercentage} />
             <div className="text-center">

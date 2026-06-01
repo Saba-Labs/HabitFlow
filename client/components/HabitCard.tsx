@@ -22,39 +22,52 @@ export const HabitCard = ({
     <motion.div
       layout
       initial={false}
-      transition={{ layout: { duration: 0.25, ease: [0.4, 0, 0.2, 1] } }}
+      animate={{
+        borderColor: completed ? 'hsl(var(--primary) / 0.45)' : 'hsl(var(--border))',
+      }}
+      transition={{
+        layout: { duration: 0.28, ease: [0.4, 0, 0.2, 1] },
+        borderColor: { duration: 0.22 },
+      }}
       className={cn(
-        'bg-card border border-border rounded-xl p-4 flex items-center gap-4',
-        'hover:border-foreground/15 transition-colors duration-200',
-        completed && 'bg-muted/30',
+        'bg-card border rounded-2xl p-5 flex items-center gap-4',
+        'transition-shadow duration-300 hover:shadow-lg',
+        completed && 'bg-gradient-to-r from-primary/5 to-secondary/5',
       )}
     >
-      <span className="text-3xl select-none leading-none" aria-hidden>
+      <motion.span
+        className="text-4xl select-none"
+        animate={{ scale: completed ? 1.05 : 1 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+      >
         {habit.icon}
-      </span>
+      </motion.span>
 
       <div className="flex-1 min-w-0">
-        <h3
+        <motion.h3
           className={cn(
-            'font-medium text-base truncate text-foreground',
-            completed && 'text-muted-foreground line-through decoration-border',
+            'font-semibold text-lg truncate',
+            completed ? 'text-primary' : 'text-foreground',
           )}
+          animate={{ opacity: completed ? 1 : 0.95 }}
+          transition={{ duration: 0.2 }}
         >
           {habit.name}
-        </h3>
+        </motion.h3>
         {habit.notes && (
-          <p className="text-sm text-muted-foreground truncate mt-0.5">{habit.notes}</p>
+          <p className="text-sm text-muted-foreground truncate">{habit.notes}</p>
         )}
         <AnimatePresence mode="wait">
           {completion.completedAt && (
             <motion.p
               key={completion.completedAt}
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.18 }}
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.2 }}
               className="text-xs text-muted-foreground mt-1"
             >
+              ✓ Completed at{' '}
               {new Date(completion.completedAt).toLocaleTimeString([], {
                 hour: '2-digit',
                 minute: '2-digit',

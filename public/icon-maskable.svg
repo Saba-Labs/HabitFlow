@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="HabitFlow">
+  <rect width="512" height="512" fill="#171717"/>
+  <path
+    fill="#fafafa"
+    d="M168 168h56v176h-56V168zm120 0h56c34 0 62 28 62 62v92c0 34-28 62-62 62h-56V168zm56 152c13 0 24-11 24-24v-92c0-13-11-24-24-24h-6v140h6z"
+  />
+</svg>
