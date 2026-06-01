@@ -1,5 +1,4 @@
 import { build } from "esbuild";
-import path from "node:path";
 
 await build({
   entryPoints: ["server/index.ts"],
@@ -7,43 +6,44 @@ await build({
   outfile: "api/server-bundle.mjs",
   format: "esm",
   platform: "node",
-  target: "node22",
+  target: "node20",
   minify: false,
   sourcemap: false,
+  // Only externalize true Node built-ins
+  packages: "bundle", // force ALL npm packages to be bundled
   external: [
-    "node:*",
-    "fs",
-    "path",
-    "url",
-    "http",
-    "https",
-    "os",
-    "crypto",
-    "stream",
-    "util",
-    "events",
-    "buffer",
-    "querystring",
-    "child_process",
-    "net",
-    "tls",
-    "dns",
-    "dotenv",
-    "dotenv/config",
+    "node:module",
+    "node:url",
+    "node:path",
+    "node:fs",
+    "node:os",
+    "node:crypto",
+    "node:stream",
+    "node:util",
+    "node:events",
+    "node:buffer",
+    "node:http",
+    "node:https",
+    "node:net",
+    "node:tls",
+    "node:dns",
+    "node:child_process",
+    "node:querystring",
   ],
   define: {
     "process.env.NODE_ENV": '"production"',
     "import.meta.main": "false",
   },
+  // This shim fixes "Dynamic require of X is not supported" for CJS packages
   banner: {
-    js: `
-import { createRequire } from 'node:module';
-import { fileURLToPath } from 'node:url';
-import { dirname } from 'node:path';
-const require = createRequire(import.meta.url);
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-    `.trim(),
+    js: [
+      `import { createRequire } from 'node:module';`,
+      `import { fileURLToPath } from 'node:url';`,
+      `import { dirname } from 'node:path';`,
+      `const require = createRequire(import.meta.url);`,
+      `const __filename = fileURLToPath(import.meta.url);`,
+      `const __dirname = dirname(__filename);`,
+    ].join("\n"),
   },
 });
 
