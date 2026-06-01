@@ -10,21 +10,28 @@ import { initDb } from "./db";
 import { authMiddleware } from "./auth";
 
 export async function createServer() {
+  console.log("[Server] Creating Express server...", {
+    nodeEnv: process.env.NODE_ENV,
+    timestamp: new Date().toISOString(),
+  });
+
   const app = express();
 
   // Initialize database (optional for development)
   if (process.env.DATABASE_URL) {
     try {
+      console.log("[Server] Initializing database...");
       await initDb();
+      console.log("[Server] Database initialized successfully");
     } catch (err) {
-      console.error("Failed to initialize database:", err);
+      console.error("[Server] Failed to initialize database:", err);
       if (process.env.NODE_ENV === "production") {
         process.exit(1);
       }
-      console.warn("Continuing without database connection...");
+      console.warn("[Server] Continuing without database connection...");
     }
   } else {
-    console.log("DATABASE_URL not set, skipping database initialization");
+    console.log("[Server] DATABASE_URL not set, skipping database initialization");
   }
 
   // Middleware
@@ -32,9 +39,19 @@ export async function createServer() {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
+  // Request logging middleware
+  app.use((req, _res, next) => {
+    console.log(`[Server] ${req.method} ${req.path}`, {
+      ip: req.ip,
+      timestamp: new Date().toISOString(),
+    });
+    next();
+  });
+
   // Example API routes
   app.get("/api/ping", (_req, res) => {
     const ping = process.env.PING_MESSAGE ?? "ping";
+    console.log("[Server] /api/ping called");
     res.json({ message: ping });
   });
 
@@ -61,10 +78,17 @@ export async function createServer() {
 
   // SPA fallback - handled by Vite in development, by static files in production
   if (process.env.NODE_ENV === "production") {
-    app.get("*", (_req, res) => {
-      res.sendFile(path.join(__dirname, "../spa/index.html"));
+    app.get("*", (req, res) => {
+      const filePath = path.join(__dirname, "../spa/index.html");
+      console.log("[Server] SPA fallback for", req.path, "serving", filePath);
+      res.sendFile(filePath);
     });
   }
+
+  console.log("[Server] Server created successfully", {
+    nodeEnv: process.env.NODE_ENV,
+    timestamp: new Date().toISOString(),
+  });
 
   return app;
 }

@@ -37,28 +37,48 @@ export default function Login() {
     }
 
     setLoading(true);
+    console.log('[Login] Submitting form', {
+      isSignup,
+      email,
+      timestamp: new Date().toISOString(),
+    });
 
     try {
       const endpoint = isSignup ? '/api/auth/signup' : '/api/auth/login';
+      console.log('[Login] Fetching', endpoint);
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
+      console.log('[Login] Response received', {
+        status: response.status,
+        ok: response.ok,
+        timestamp: new Date().toISOString(),
+      });
+
       if (!response.ok) {
         const error = await response.json();
+        console.error('[Login] API error', { error, status: response.status });
         toast.error(error.error || 'Authentication failed');
         return;
       }
 
       const { token } = await response.json();
+      console.log('[Login] Authentication successful, token received');
       localStorage.setItem('authToken', token);
       toast.success(isSignup ? 'Signed up successfully!' : 'Logged in successfully!');
+      console.log('[Login] Navigating to home page');
       navigate('/');
     } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      console.error('[Login] Error during authentication', {
+        error: errorMsg,
+        stack: err instanceof Error ? err.stack : undefined,
+        timestamp: new Date().toISOString(),
+      });
       toast.error('An error occurred');
-      console.error(err);
     } finally {
       setLoading(false);
     }
